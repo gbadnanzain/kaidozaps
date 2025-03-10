@@ -39,7 +39,11 @@ class TransResource extends Resource
     {
         return static::getModel()::count();
     }
-
+// Scope untuk memfilter SO_Status
+public function scopeActiveStatus($query)
+{
+    return $query->whereNotIn('SO_Status', ['COMPLETED', 'W/OFF', 'CANCELED']);
+}
     public static function form(Form $form): Form
     {
         return $form
@@ -91,6 +95,35 @@ class TransResource extends Resource
                             ->label('Agent')
                             ->required()
                             ->columnSpan(5),
+                            Forms\Components\Select::make('SO_Status')
+                            ->label('Status')
+                            ->required()
+                            ->options([
+                                'SENT' => 'ALL SENT',
+                                'CANCELED' => 'CANCELED',
+                                'COMPLETED' => 'COMPLETED',
+                                'DELIVERED PARTIAL' => 'DELIVERED PARTIAL',
+                                'INVOICED' => 'INVOICED',
+                                'ITEM INCOMPLETE' => 'ITEM INCOMPLETE',
+                                'OUTSTANDING' => 'OUTSTANDING',
+                                'PAYMENT' => 'PAYMENT',
+                                'TAKE ID' => 'TAKE ID',
+                                'W/OFF' => 'W/OFF',
+                            ])
+                            ->getOptionLabelUsing(fn($value) => match ($value) {
+                                'SENT' => '<span class="text-green-600 font-bold">ALL SENT</span>',
+                                'CANCELED' => '<span class="text-red-600 font-bold">CANCELED</span>',
+                                'COMPLETED' => '<span class="text-green-600 font-bold">COMPLETED</span>',
+                                'DELIVERED PARTIAL' => '<span class="text-yellow-600 font-bold">DELIVERED PARTIAL</span>',
+                                'INVOICED' => '<span class="text-blue-600 font-bold">INVOICED</span>',
+                                'ITEM INCOMPLETE' => '<span class="text-red-600 font-bold">ITEM INCOMPLETE</span>',
+                                'OUTSTANDING' => '<span class="text-yellow-600 font-bold">OUTSTANDING</span>',
+                                'PAYMENT' => '<span class="text-blue-600 font-bold">PAYMENT</span>',
+                                'TAKE ID' => '<span class="text-gray-600 font-bold">TAKE ID</span>',
+                                'W/OFF' => '<span class="text-gray-500 font-bold">W/OFF</span>',
+                                default => '<span class="text-gray-500">UNKNOWN</span>',
+                            })
+                            ->columnSpan(10),
                         Forms\Components\TextInput::make('SO_CustPONo')
                             ->label('Cust. PO No')
                             ->columnSpan(10),
@@ -194,35 +227,7 @@ class TransResource extends Resource
                         TextInput::make('ACTG_Remarks')
                             ->label('Accounting Remarks')
                             ->columnSpan(9),
-                        Forms\Components\Select::make('SO_Status')
-                            ->label('Status')
-                            ->required()
-                            ->options([
-                                'SENT' => 'ALL SENT',
-                                'CANCELED' => 'CANCELED',
-                                'COMPLETED' => 'COMPLETED',
-                                'DELIVERED PARTIAL' => 'DELIVERED PARTIAL',
-                                'INVOICED' => 'INVOICED',
-                                'ITEM INCOMPLETE' => 'ITEM INCOMPLETE',
-                                'OUTSTANDING' => 'OUTSTANDING',
-                                'PAYMENT' => 'PAYMENT',
-                                'TAKE ID' => 'TAKE ID',
-                                'W/OFF' => 'W/OFF',
-                            ])
-                            ->getOptionLabelUsing(fn($value) => match ($value) {
-                                'SENT' => '<span class="text-green-600 font-bold">ALL SENT</span>',
-                                'CANCELED' => '<span class="text-red-600 font-bold">CANCELED</span>',
-                                'COMPLETED' => '<span class="text-green-600 font-bold">COMPLETED</span>',
-                                'DELIVERED PARTIAL' => '<span class="text-yellow-600 font-bold">DELIVERED PARTIAL</span>',
-                                'INVOICED' => '<span class="text-blue-600 font-bold">INVOICED</span>',
-                                'ITEM INCOMPLETE' => '<span class="text-red-600 font-bold">ITEM INCOMPLETE</span>',
-                                'OUTSTANDING' => '<span class="text-yellow-600 font-bold">OUTSTANDING</span>',
-                                'PAYMENT' => '<span class="text-blue-600 font-bold">PAYMENT</span>',
-                                'TAKE ID' => '<span class="text-gray-600 font-bold">TAKE ID</span>',
-                                'W/OFF' => '<span class="text-gray-500 font-bold">W/OFF</span>',
-                                default => '<span class="text-gray-500">UNKNOWN</span>',
-                            })
-                            ->columnSpan(10),
+                       
                         TextInput::make('updated_by')
                             ->label('Updated by')
                             ->disabled()
@@ -310,7 +315,24 @@ class TransResource extends Resource
                     ->label('Customer PO No')
                     ->placeholder('Enter Customer PO No')
                     ->default('-'),
+                    Tables\Columns\SelectColumn::make('SO_Status')
+                    ->label('SO Status')
 
+                    ->options([
+                        'ALL SENT' => 'All Sent',
+                        'CANCELED' => 'Canceled',
+                        'COMPLETED' => 'Completed',
+                        'DELIVERED PARTIAL' => 'Delivered Partial',
+                        'INVOICED' => 'Invoiced',
+                        'ITEM INCOMPLETE' => 'Item Incomplete',
+                        'OUTSTANDING' => 'Outstanding',
+                        'PAYMENT' => 'Payment',
+                        'TAKE ID' => 'Take ID',
+                        'W/OFF' => 'W/OFF',
+                        '#Replicated#' => 'Replicated'
+                    ])
+                // Menambahkan pencarian jika diperlukan
+                ,
                 TextInputColumn::make('SO_Item_Description')
                     ->sortable()
                     //->searchable(isIndividual: true)
@@ -351,24 +373,7 @@ class TransResource extends Resource
                     ->sortable(),
                     //->searchable(isIndividual: true),
 
-                Tables\Columns\SelectColumn::make('SO_Status')
-                    ->label('SO Status')
-
-                    ->options([
-                        'SENT' => 'Sent',
-                        'CANCELED' => 'Canceled',
-                        'COMPLETED' => 'Completed',
-                        'DELIVERED PARTIAL' => 'Delivered Partial',
-                        'INVOICED' => 'Invoiced',
-                        'ITEM INCOMPLETE' => 'Item Incomplete',
-                        'OUTSTANDING' => 'Outstanding',
-                        'PAYMENT' => 'Payment',
-                        'TAKE ID' => 'Take ID',
-                        'W/OFF' => 'W/OFF',
-                        '#Replicated#' => 'Replicated'
-                    ])
-                // Menambahkan pencarian jika diperlukan
-                ,
+                
 
                 TextInputColumn::make('PCH_PO_to_TELC_MS')
                     ->label('PO to TELC MS'),
@@ -629,7 +634,7 @@ class TransResource extends Resource
 
             ])
             ->headerActions([
-                ExportAction::make()->exporter(TransExporter::class),
+                //ExportAction::make()->exporter(TransExporter::class),
                 //ImportAction::make()->importer(BookImporter::class),
             ])
             ->actions([
