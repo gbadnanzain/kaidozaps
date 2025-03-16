@@ -39,11 +39,11 @@ class TransResource extends Resource
     {
         return static::getModel()::count();
     }
-// Scope untuk memfilter SO_Status
-public function scopeActiveStatus($query)
-{
-    return $query->whereNotIn('SO_Status', ['COMPLETED', 'W/OFF', 'CANCELED']);
-}
+    // Scope untuk memfilter SO_Status
+    public function scopeActiveStatus($query)
+    {
+        return $query->whereNotIn('SO_Status', ['COMPLETED', 'W/OFF', 'CANCELED']);
+    }
     public static function form(Form $form): Form
     {
         return $form
@@ -95,7 +95,7 @@ public function scopeActiveStatus($query)
                             ->label('Agent')
                             ->required()
                             ->columnSpan(5),
-                            Forms\Components\Select::make('SO_Status')
+                        Forms\Components\Select::make('SO_Status')
                             ->label('Status')
                             ->required()
                             ->options([
@@ -227,7 +227,7 @@ public function scopeActiveStatus($query)
                         TextInput::make('ACTG_Remarks')
                             ->label('Accounting Remarks')
                             ->columnSpan(9),
-                       
+
                         TextInput::make('updated_by')
                             ->label('Updated by')
                             ->disabled()
@@ -315,7 +315,7 @@ public function scopeActiveStatus($query)
                     ->label('Customer PO No')
                     ->placeholder('Enter Customer PO No')
                     ->default('-'),
-                    Tables\Columns\SelectColumn::make('SO_Status')
+                Tables\Columns\SelectColumn::make('SO_Status')
                     ->label('SO Status')
 
                     ->options([
@@ -371,9 +371,9 @@ public function scopeActiveStatus($query)
                 TextInputColumn::make('SO_RQ_No')
                     ->label('Request No.')
                     ->sortable(),
-                    //->searchable(isIndividual: true),
+                //->searchable(isIndividual: true),
 
-                
+
 
                 TextInputColumn::make('PCH_PO_to_TELC_MS')
                     ->label('PO to TELC MS'),
@@ -381,7 +381,7 @@ public function scopeActiveStatus($query)
                 TextInputColumn::make('PCH_ETA')
                     ->label('ETA')
                     ->sortable(),
-                    //->searchable(isIndividual: true),
+                //->searchable(isIndividual: true),
                 TextInputColumn::make('PCH_PO_ReceiveDate')
                     ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('Y-m-d'))
                     ->label('PO Receive Date')
@@ -594,7 +594,7 @@ public function scopeActiveStatus($query)
                     ->multiple()
                     ->searchable(),
 
-                    SelectFilter::make('MTC_DN_DO')
+                SelectFilter::make('MTC_DN_DO')
                     ->label('MTC_DN_DO')
                     ->options(
                         fn() => Trans::query()
@@ -606,7 +606,7 @@ public function scopeActiveStatus($query)
                     )
                     ->searchable(),
 
-                
+
                 SelectFilter::make('MTC_RQ_No')
                     ->label('MTC_RQ_No')
                     ->options(
@@ -630,7 +630,7 @@ public function scopeActiveStatus($query)
                             ->toArray()
                     )
                     ->multiple()
-                    ->searchable(), 
+                    ->searchable(),
 
             ])
             ->headerActions([
@@ -688,31 +688,60 @@ public function scopeActiveStatus($query)
 
                     ->icon('heroicon-m-check')
                     ->color('success')
-                    ->requiresConfirmation()
+                    ->requiresConfirmation(function (Collection $records) {
+
+                        if ($records->count() <  10) {
+                            return ('Anda mencoba untuk memperbarui lebih dari 50 record. Apakah Anda yakin ingin melanjutkan?');
+                        }
+                        return null;
+                    })
                     ->action(function (Collection $records) {
                         $records->each->update(['SO_Status' => 'COMPLETED']);
-                    }),
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
                 BulkAction::make('Set Status CANCELED')
                     ->color('warning')
                     ->icon('heroicon-m-x-mark')
-                    ->requiresConfirmation()
+                    ->requiresConfirmation() // Meminta konfirmasi sebelum tindakan
                     ->action(function (Collection $records) {
-                        $records->each->update(['SO_Status' => 'CANCELED']);
-                    }),
+                        $count = $records->count(); // Menghitung jumlah record yang diupdate
+
+                        // Menampilkan pesan konfirmasi dengan jumlah record yang akan diupdate
+                        return [
+                            'message' => "Anda akan mengupdate status pada {$count} record. Apakah Anda yakin?",
+                            'action' => function () use ($records) {
+                                // Melakukan update pada setiap record
+                                $records->each->update(['SO_Status' => 'CANCELED']);
+                                
+                                
+                            },
+                        ];
+                    })
+                    
+                    ->deselectRecordsAfterCompletion(),
                 BulkAction::make('Set Status W/OFF')
 
-                    ->icon('heroicon-o-check-circle')
-                    ->color('warning')
-                    ->requiresConfirmation()
+                    ->icon('heroicon-o-check-circle') // Menentukan ikon
+                    ->color('warning') // Menentukan warna tombol
+                    ->requiresConfirmation() // Meminta konfirmasi sebelum tindakan
                     ->action(function (Collection $records) {
-                        $records->each->update(['SO_Status' => 'W/OFF']);
-                    }),
+                        // Update status pada setiap record yang dipilih
+                        $records->each(function ($record) {
+                            $record->update(['SO_Status' => 'W/OFF']);
+                        });
+                    })
+                    ->deselectRecordsAfterCompletion(),
                 ExportBulkAction::make()
                     ->exporter(TransExporter::class)
                     ->color('info') // Mengubah warna tombol menjadi 'info'
                     ->label('Export Data') // Menambahkan label pada tombol
                     ->icon('heroicon-o-arrow-down-tray')
-            ]);
+                    ->deselectRecordsAfterCompletion()
+
+            ])
+            //->deselectRecordsAfterCompletion()
+        ;
     }
 
     public static function getRelations(): array
