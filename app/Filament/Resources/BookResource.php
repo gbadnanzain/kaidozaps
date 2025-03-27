@@ -56,7 +56,11 @@ class BookResource extends Resource implements HasShieldPermissions
                     ->maxLength(255),
                 Forms\Components\TextInput::make('author')
                     ->required()
-                    ->maxLength(255),
+                    ->disabled()
+                    ->maxLength(255)
+                    ->default(function () {
+                        return auth()->user() ? auth()->user()->name : null;
+                    }),
                 Forms\Components\Textarea::make('description')
                     ->required()
                     

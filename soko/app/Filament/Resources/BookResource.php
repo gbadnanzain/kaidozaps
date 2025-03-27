@@ -56,7 +56,8 @@ class BookResource extends Resource implements HasShieldPermissions
                     ->maxLength(255),
                 Forms\Components\TextInput::make('author')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ,
                 Forms\Components\Textarea::make('description')
                     ->required()
                     ->columnSpanFull(),
