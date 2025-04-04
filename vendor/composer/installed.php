@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'siubie/kaido-kit',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '3d9437c28362406543175afac9cfd3e67a619680',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -47,9 +47,9 @@
             'dev_requirement' => false,
         ),
         'blade-ui-kit/blade-heroicons' => array(
-            'pretty_version' => '2.5.0',
-            'version' => '2.5.0.0',
-            'reference' => '4ed3ed08e9ac192d0d126b2f12711d6fb6576a48',
+            'pretty_version' => '2.6.0',
+            'version' => '2.6.0.0',
+            'reference' => '4553b2a1f6c76f0ac7f3bc0de4c0cfa06a097d19',
             'type' => 'library',
             'install_path' => __DIR__ . '/../blade-ui-kit/blade-heroicons',
             'aliases' => array(),
@@ -1590,9 +1590,9 @@
             'dev_requirement' => true,
         ),
         'siubie/kaido-kit' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '3d9437c28362406543175afac9cfd3e67a619680',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

@@ -319,9 +319,9 @@ class ComposerStaticInite02065cd51c7002d3e7193fb58b14be6
         ),
         'phpDocumentor\\Reflection\\' => 
         array (
-            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
-            1 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
-            2 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            0 => __DIR__ . '/..' . '/phpdocumentor/reflection-docblock/src',
+            1 => __DIR__ . '/..' . '/phpdocumentor/type-resolver/src',
+            2 => __DIR__ . '/..' . '/phpdocumentor/reflection-common/src',
         ),
         'ZipStream\\' => 
         array (
@@ -829,9 +829,9 @@ class ComposerStaticInite02065cd51c7002d3e7193fb58b14be6
         ),
         'Filament\\' => 
         array (
-            0 => __DIR__ . '/..' . '/filament/filament/src',
+            0 => __DIR__ . '/..' . '/filament/spatie-laravel-settings-plugin/src',
             1 => __DIR__ . '/..' . '/filament/spatie-laravel-media-library-plugin/src',
-            2 => __DIR__ . '/..' . '/filament/spatie-laravel-settings-plugin/src',
+            2 => __DIR__ . '/..' . '/filament/filament/src',
         ),
         'Fidry\\CpuCoreCounter\\' => 
         array (

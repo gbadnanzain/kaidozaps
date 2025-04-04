@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Tables\Actions\NewAction;
 use Illuminate\Support\Carbon;
+use PhpParser\Node\Stmt\Label;
 use Filament\Resources\Resource;
 use Illuminate\Support\Collection;
 use Filament\Tables\Actions\Action;
@@ -17,10 +18,11 @@ use Illuminate\Support\Facades\Auth;
 use Filament\Actions\ReplicateAction;
 use App\Filament\Exports\TransExporter;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+//use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
-//use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Filters\SelectFilter;
@@ -68,7 +70,7 @@ class TransResource extends Resource
                                 // Set nilai SO_ID berdasarkan perubahan di SO_No
                                 $set('SO_ID', substr($state, 0, 4) . '/' . substr($state, -3));
                             }) */,
-                            /* Forms\Components\Select::make('SO_Status')
+                        Forms\Components\Select::make('SO_Status')
                             ->label('Status')
                             ->required()
                             ->reactive()
@@ -98,14 +100,14 @@ class TransResource extends Resource
                                 default => '<span class="text-gray-500">UNKNOWN</span>',
                             })
                             ->columnSpan(10),
-                            */
+
                         Forms\Components\TextInput::make('SO_ID')
                             ->label('SO ID')
                             ->required()
-                            ->columnSpan(6), 
+                            ->columnSpan(6),
 
 
-                        
+
                         Forms\Components\DatePicker::make('SO_Date')
                             ->label('SO Date')
                             ->required()
@@ -131,11 +133,11 @@ class TransResource extends Resource
                             ->label('Agent')
                             ->required()
                             ->columnSpan(5),
-                       
+
                         Forms\Components\TextInput::make('SO_CustPONo')
                             ->label('Cust. PO No')
                             ->columnSpan(10),
-                        
+
                         TextInput::make('SO_Item_Description')
                             ->label('Description')
                             ->required()
@@ -264,6 +266,7 @@ class TransResource extends Resource
                     ->disabled()
                     ->label('ID'),
                 TextInputColumn::make('SO_ID')
+
                     ->label('SO ID')
                     ->toggleable()
                     ->placeholder('Generated from SO_No')
@@ -288,44 +291,93 @@ class TransResource extends Resource
                     ->placeholder('Enter SO Date')
                     ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('Y-m-d')),
 
-                    TextColumn::make('SO_Status')
+                TextColumn::make('SO_Status')
+                    ->badge()
                     ->label('SO Status')
                     ->sortable()
                     ->columnSpan(10)
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        $status = [
-                            'ALL SENT' => ['label' => 'All Sent', 'color' => 'bg-blue-500', 'icon' => '📤'],
-                            'CANCELED' => ['label' => 'Canceled', 'color' => 'bg-red-500', 'icon' => '❌'],
-                            'COMPLETED' => ['label' => 'Completed', 'color' => 'bg-green-500', 'icon' => '✅'],
-                            'DELIVERED PARTIAL' => ['label' => 'Delivered Partial', 'color' => 'bg-yellow-500', 'icon' => '🚚'],
-                            'INVOICED' => ['label' => 'Invoiced', 'color' => 'bg-purple-500', 'icon' => '💳'],
-                            'ITEM INCOMPLETE' => ['label' => 'Item Incomplete', 'color' => 'bg-orange-500', 'icon' => '⚠️'],
-                            'OUTSTANDING' => ['label' => 'Outstanding', 'color' => 'bg-gray-500', 'icon' => '⏳'],
-                            'PAYMENT' => ['label' => 'Payment', 'color' => 'bg-teal-500', 'icon' => '💸'],
-                            'TAKE ID' => ['label' => 'Take ID', 'color' => 'bg-indigo-500', 'icon' => '🆔'],
-                            'W/OFF' => ['label' => 'W/OFF', 'color' => 'bg-pink-500', 'icon' => '💥'],
-                            '#Replicated#' => ['label' => 'Replicated', 'color' => 'bg-gray-700', 'icon' => '🔄'],
-                        ];
-
-                        // Get the status data for the selected value
-                        $statusData = $status[$state] ?? null;
-
-                        if ($statusData) {
-                            // Return the badge with icon and label as raw HTML
-                            return sprintf(
-                                '<span class="inline-flex items-center justify-center px-3 py-1 text-white rounded-full %s space-x-2" title="%s">%s</span>',
-                                $statusData['color'],  // Background color
-                                $statusData['label'],  // Tooltip (label text) for hover
-                                $statusData['icon']    // Icon displayed in the badge
-                            );
-                        }
-
-                        return $state;  // Fallback: return the state if no matching status
+                    ->icon(icon: fn(string $state) => match ($state) {
+                        'ALL SENT' => 'heroicon-o-check-circle',
+                        'CANCELED' => 'heroicon-o-x-circle',
+                        'COMPLETED' => 'heroicon-o-check-circle',
+                        'DELIVERED PARTIAL' => 'heroicon-o-truck',
+                        'INVOICED' => 'heroicon-o-document',
+                        'ITEM INCOMPLETE' => 'heroicon-o-exclamation-circle',
+                        'OUTSTANDING' => 'heroicon-o-clock',
+                        'PAYMENT' => 'heroicon-o-credit-card',
+                        'TAKE ID' => 'heroicon-o-identification', // Changed to valid icon
+                        'W/OFF' => 'heroicon-o-x-mark',
+                        '#Replicated#' => 'heroicon-o-hand-raised',
+                        default => 'heroicon-o-hand-raised',
                     })
-                    ->html()
-                // Menambahkan pencarian jika diperlukan
-                ,
+                    ->color(fn(string $state): string => match ($state) {
+                        'ALL SENT' => 'primary',  // bg-blue-500
+                        'CANCELED' => 'danger',   // bg-red-500
+                        'COMPLETED' => 'success', // bg-green-500
+                        'DELIVERED PARTIAL' => 'warning', // bg-yellow-500
+                        'INVOICED' => 'primary', // bg-purple-500
+                        'ITEM INCOMPLETE' => 'warning', // bg-orange-500
+                        'OUTSTANDING' => 'primary', // bg-gray-500
+                        'PAYMENT' => 'success',    // bg-teal-500
+                        'TAKE ID' => 'warning',  // bg-indigo-500
+                        'W/OFF' => 'danger',      // bg-pink-500
+                        '#Replicated#' => 'gray', // bg-gray-700
+                        default => 'gray', // Default color if no match
+                    })
+                    ->html(fn(string $state): string => match ($state) {
+                        'ALL SENT' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4v16a1 1 0 001 1h16a1 1 0 001-1V4l-8 4-8-4z"/>
+        </svg>' . $state, // Paper airplane icon
+                        'CANCELED' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>' . $state, // X icon
+                        'COMPLETED' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>' . $state, // Checkmark icon
+                        'DELIVERED PARTIAL' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 12V8a4 4 0 118 0v4a4 4 0 11-8 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12V8a4 4 0 118 0v4a4 4 0 11-8 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a4 4 0 014 4h8a4 4 0 014-4v-8"/>
+        </svg>' . $state, // Truck icon
+                        'INVOICED' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 0v4m0-4h4m-4 0h-4"/>
+        </svg>' . $state, // Invoice icon
+                        'ITEM INCOMPLETE' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
+        </svg>' . $state, // Exclamation icon
+                        'OUTSTANDING' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 0v4m0-4h4m-4 0h-4"/>
+        </svg>' . $state, // Clock icon
+                        'PAYMENT' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3z"/>
+        </svg>' . $state, // Credit card icon
+                        'TAKE ID' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"/>
+        </svg>' . $state, // ID card icon
+                        'W/OFF' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2 2 2M12 10v4"/>
+        </svg>' . $state, // Minus circle icon
+                        '#Replicated#' =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4v16a1 1 0 001 1h16a1 1 0 001-1V4l-8 4-8-4z"/>
+        </svg>' . $state, // Copy icon
+                        default =>
+                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20M2 12h20"/>
+        </svg>' . $state, // Default circle icon
+
+                    }),
 
                 TextInputColumn::make('SO_DebtorID')
                     ->sortable()
@@ -383,7 +435,7 @@ class TransResource extends Resource
 
                 TextInputColumn::make('SO_LiftNo')
                     ->sortable()
-                    //->searchable(isIndividual: true)
+                    ->searchable(isIndividual: true)
                     ->label('Lift No')
                     ->placeholder('Enter Lift No')
                     ->default('-'),
@@ -432,6 +484,7 @@ class TransResource extends Resource
                     ->label('Transf. Qty')
                     ->columnSpan(1),
                 TextInputColumn::make('PCH_Doc')
+                ->searchable(isIndividual: true)
                     ->label('Purchase Document')
                     ->columnSpan(1),
                 TextInputColumn::make('PCH_Date')
@@ -451,7 +504,7 @@ class TransResource extends Resource
                 TextInputColumn::make('MTC_RQ_No')
                     ->label('MTC Req. No.')
                     ->sortable()
-                    //->searchable(isIndividual: true)
+                    ->searchable(isIndividual: true)
                     ->toggleable(),
                 TextInputColumn::make('MTC_RQ_Date')
                     ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('Y-m-d'))
@@ -468,6 +521,7 @@ class TransResource extends Resource
                     ->sortable()
                     ->toggleable(),
                 TextInputColumn::make('MTC_SBK')
+                    ->searchable(isIndividual: true)
                     ->label('SBK')
                     ->sortable()
                     //->searchable()
@@ -476,13 +530,14 @@ class TransResource extends Resource
                     ->label('Job Order')
                     ->toggleable(),
                 TextInputColumn::make('MTC_DN_DO')
+                ->searchable(isIndividual: true)
                     ->label('DN / DO')
                     ->sortable()
                     ->toggleable(),
                 TextInputColumn::make('MTC_BA')
                     ->label('BA')
                     ->sortable()
-                    //->searchable()
+                    ->searchable(isIndividual: true)
                     ->toggleable(),
                 TextInputColumn::make('MTC_Other')
                     ->label('Other MTC Info')
@@ -624,8 +679,8 @@ class TransResource extends Resource
                     )
                     ->multiple()
                     ->searchable(),
-                
-                   /*  
+
+                /*  
                    ERROR Data
                    SelectFilter::make('SO_Lift_No')
                     ->label('Lift No.')
@@ -865,75 +920,217 @@ class TransResource extends Resource
 
 
 
-                BulkAction::make('Set Status COMPLETED')
 
-                    ->icon('heroicon-m-check')
-                    ->color('success')
 
-                    ->action(function (Collection $records) {
-                        $count = $records->count(); // Menghitung jumlah record yang dipilih
 
-                        if ($count >= 10) {
+
+                /* BulkAction::make('Set Status')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->form([
+                            Select::make('selected_status')
+                                ->options([
+                                    'ALL SENT' => 'All Sent',
+                                    'CANCELED' => 'Canceled',
+                                    'COMPLETED' => 'Completed',
+                                    'DELIVERED PARTIAL' => 'Delivered Partial',
+                                    'INVOICED' => 'Invoiced',
+                                    'ITEM INCOMPLETE' => 'Item Incomplete',
+                                    'OUTSTANDING' => 'Outstanding',
+                                    'PAYMENT' => 'Payment',
+                                    'TAKE ID' => 'Take ID',
+                                    'W/OFF' => 'W/OFF',
+                                ])
+                                ->required(),
+                        ])
+                        ->action(function (Collection $records, array $data) {
+                            $count = $records->count(); // Count the selected records
+    
+                            if ($count > 10) {
+                                return [
+                                    'message' => "Gagal! Anda hanya dapat mengupdate maksimal 10 record sekaligus.",
+                                    'status' => 'error', // Display error message
+                                ];
+                            }
+    
+                            // Update each record with the selected status
+                            $records->each->update([
+                                'SO_Status' => $data['selected_status'],
+                                'updated_by' => Auth::user()->name,
+                                'updated_at' => now(),
+                            ]);
+    
                             return [
-                                'message' => "Gagal! Anda hanya dapat mengupdate maksimal 10 record sekaligus.",
-                                'status' => 'error', // Menampilkan pesan error
+                                'message' => "{$count} record berhasil diperbarui.",
+                                'status' => 'success',
                             ];
-                        }
+                        })
+                       
+                    ]), */
 
-                        return [
-                            'message' => "Anda akan mengupdate status pada {$count} record. Apakah Anda yakin?",
-                            'action' => function () use ($records) {
-                                // Melakukan update pada setiap record
-                                $records->each->update([
-                                    'SO_Status' => 'COMPLETED',
-                                    'updated_by' => Auth::user()->name,
-                                    'updated_at' => now()
-                                ]);
-                            },
-                        ];
+
+
+
+                BulkAction::make('ALL SENT')
+                    ->Label('ALL SENT')
+                    ->tooltip('Set Status ALL SENT')
+                    ->icon('heroicon-o-check-circle')  // Ikon untuk 'ALL SENT'
+                    ->color('primary')
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'ALL SENT', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
                     })
                     ->deselectRecordsAfterCompletion(),
 
-                BulkAction::make('Set Status CANCELED')
-                    ->color('warning')
-                    ->icon('heroicon-m-x-mark')
-                    ->requiresConfirmation() // Meminta konfirmasi sebelum tindakan
+                // Bulk action untuk Set Status 'CANCELED'
+                BulkAction::make('CANCELED')
+                    ->Label('CANCELED')
+                    ->tooltip('Set Status CANCELED')
+                    ->icon('heroicon-o-x-circle')  // Ikon untuk 'CANCELED'
+                    ->color('danger') // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
                     ->action(function (Collection $records) {
-                        $count = $records->count(); // Menghitung jumlah record yang dipilih
-
-                        if ($count > 10) {
-                            return [
-                                'message' => "Gagal! Anda hanya dapat mengupdate maksimal 10 record sekaligus.",
-                                'status' => 'error', // Menampilkan pesan error
-                            ];
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'CANCELED', 'updated_by' => Auth::user()->name]);
+                            });
                         }
-
-                        return [
-                            'message' => "Anda akan mengupdate status pada {$count} record. Apakah Anda yakin?",
-                            'action' => function () use ($records) {
-                                // Melakukan update pada setiap record
-                                $records->each->update([
-                                    'SO_Status' => 'CANCELED',
-                                    'updated_by' => Auth::user()->name,
-                                    'updated_at' => now()
-                                ]);
-                            },
-                        ];
                     })
-
                     ->deselectRecordsAfterCompletion(),
-                BulkAction::make('Set Status W/OFF')
 
-                    ->icon('heroicon-o-check-circle') // Menentukan ikon
+                // Bulk action untuk Set Status 'COMPLETED'
+                BulkAction::make('COMPLETED')
+                    ->Label('COMPLETED')
+                    ->tooltip('Set Status COMPLETED')
+                    ->icon('heroicon-o-check-circle')  // Ikon untuk 'COMPLETED'
+                    ->color('success') // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'COMPLETED', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'DELIVERED PARTIAL'
+                BulkAction::make('DELIVERED PARTIAL')
+                    ->Label('DELIVERED PARTIAL')
+                    ->tooltip('Set Status DELIVERED PARTIAL')
+                    ->icon('heroicon-o-truck')  // Ikon untuk 'DELIVERED PARTIAL'
                     ->color('warning') // Menentukan warna tombol
-                    ->requiresConfirmation() // Meminta konfirmasi sebelum tindakan
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
                     ->action(function (Collection $records) {
-                        // Update status pada setiap record yang dipilih
-                        $records->each(function ($record) {
-                            $record->update(['SO_Status' => 'W/OFF', 'updated_by' => Auth::user()->name]);
-                        });
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'DELIVERED PARTIAL', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
                     })
                     ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'INVOICED'
+                BulkAction::make('Set Status INVOICED')
+                    ->Label('INVOICED')
+                    ->tooltip('Set Status INVOICED')
+                    ->icon('heroicon-o-document')  // Ikon untuk 'INVOICED'
+                    ->color('primary')  // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'INVOICED', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'ITEM INCOMPLETE'
+                BulkAction::make('Set Status ITEM INCOMPLETE')
+                    ->Label('ITEM INCOMPLETE')
+                    ->tooltip('Set Status ITEM INCOMPLETE')
+                    ->icon('heroicon-o-exclamation-circle')  // Ikon untuk 'ITEM INCOMPLETE'
+                    ->color('warning')  // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'ITEM INCOMPLETE', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'OUTSTANDING'
+                BulkAction::make('Set Status OUTSTANDING')
+                    ->Label('OUTSTANDING')
+                    ->tooltip('Set Status OUTSTANDING')
+                    ->icon('heroicon-o-clock')  // Ikon untuk 'OUTSTANDING'
+                    ->color('primary') // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'OUTSTANDING', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'PAYMENT'
+                BulkAction::make('Set Status PAYMENT')
+                    ->Label('PAYMENT')
+                    ->tooltip('Set Status PAYMENT')
+                    ->icon('heroicon-o-credit-card')  // Ikon untuk 'PAYMENT'
+                    ->color('success')  // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'PAYMENT', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'TAKE ID'
+                BulkAction::make('Set Status TAKE ID')
+                    ->Label('TAKE ID')
+                    ->tooltip('Set Status TAKE ID')
+                    ->icon('heroicon-o-identification')  // Ikon untuk 'TAKE ID'
+                    ->color('warning')  // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'TAKE ID', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+                // Bulk action untuk Set Status 'W/OFF'
+                BulkAction::make('Set Status W/OFF')
+                    ->Label('W/OFF')
+                    ->tooltip('Set Status W/OFF')
+                    ->icon('heroicon-o-x-mark')  // Ikon untuk 'W/OFF'
+                    ->color('danger')  // Menentukan warna tombol
+                    ->requiresConfirmation()  // Meminta konfirmasi sebelum tindakan
+                    ->action(function (Collection $records) {
+                        if ($records->count() < 11) {
+                            $records->each(function ($record) {
+                                $record->update(['SO_Status' => 'W/OFF', 'updated_by' => Auth::user()->name]);
+                            });
+                        }
+                    })
+                    ->deselectRecordsAfterCompletion(),
+
+
                 ExportBulkAction::make()
                     ->exporter(TransExporter::class)
                     ->color('info') // Mengubah warna tombol menjadi 'info'
