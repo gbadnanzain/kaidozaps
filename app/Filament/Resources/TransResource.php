@@ -408,22 +408,7 @@ class TransResource extends Resource
                     ->label('Customer PO No')
                     ->placeholder('Enter Customer PO No')
                     ->default('-'),
-                /* Tables\Columns\SelectColumn::make('SO_Status')
-                    ->label('SO Status')
-
-                    ->options([
-                        'ALL SENT' => 'All Sent',
-                        'CANCELED' => 'Canceled',
-                        'COMPLETED' => 'Completed',
-                        'DELIVERED PARTIAL' => 'Delivered Partial',
-                        'INVOICED' => 'Invoiced',
-                        'ITEM INCOMPLETE' => 'Item Incomplete',
-                        'OUTSTANDING' => 'Outstanding',
-                        'PAYMENT' => 'Payment',
-                        'TAKE ID' => 'Take ID',
-                        'W/OFF' => 'W/OFF',
-                        '#Replicated#' => 'Replicated'
-                    ]) */
+                
 
 
                 TextInputColumn::make('SO_Item_Description')
@@ -598,7 +583,7 @@ class TransResource extends Resource
             ->defaultSort('SO_ID', 'desc')
             ->filters([
                 // Filter berdasarkan rentang tanggal (current month & year)
-                // Filter berdasarkan rentang tanggal (current month & year)
+                
                 Filter::make('date_range')
                     ->form([
                         Forms\Components\DatePicker::make('from')
@@ -680,20 +665,7 @@ class TransResource extends Resource
                     ->multiple()
                     ->searchable(),
 
-                /*  
-                   ERROR Data
-                   SelectFilter::make('SO_Lift_No')
-                    ->label('Lift No.')
-                    ->options(
-                        fn() => Trans::query()
-                            ->select('SO_LiftNo')
-                            ->distinct()
-                            ->orderBy('SO_LiftNo', 'asc')
-                            ->pluck('SO_LiftNo', 'SO_LiftNo')
-                            ->toArray()
-                    )
-                    ->multiple()
-                    ->searchable(), */
+                
 
                 SelectFilter::make('SO_Item_Description')
                     ->label('Item Description')
@@ -707,34 +679,7 @@ class TransResource extends Resource
                     )
                     ->multiple()
                     ->searchable(),
-                /*
-
-                ERROR DATA
-                SelectFilter::make('MTC_DN_DO')
-                    ->label('MTC_DN_DO')
-                    ->options(
-                        fn() => Trans::query()
-                            ->select('MTC_DN_DO')
-                            ->distinct()
-                            ->orderBy('MTC_DN_DO', 'desc')
-                            ->pluck('MTC_DN_DO', 'MTC_DN_DO')
-                            ->toArray()
-                    )
-                    ->searchable(),
-
-
-                SelectFilter::make('MTC_RQ_No')
-                    ->label('MTC_RQ_No')
-                    ->options(
-                        fn() => Trans::query()
-                            ->select('MTC_RQ_No')
-                            ->distinct()
-                            ->orderBy('MTC_RQ_No', 'desc')
-                            ->pluck('MTC_RQ_No', 'MTC_RQ_No')
-                            ->toArray()
-                    )
-                    ->searchable(),
-*/
+               
                 SelectFilter::make('SO_Status')
                     ->label('SO Status')
                     ->options(
@@ -754,78 +699,7 @@ class TransResource extends Resource
                 //ImportAction::make()->importer(BookImporter::class),
             ])
             ->actions([
-                /* Action::make('replicate')
-                    ->label('New Record')
-                    ->color('danger')
-                    ->icon('heroicon-o-document')
-                    ->action(function ($record) {
-                        $newRecord = $record->replicate();
-
-                        // Daftar atribut yang perlu dikecualikan dari replikasi
-                        $excludeAttributes = [
-                            'SO_ID',
-                            'SO_No',
-                            'SO_Date',
-                            'SO_Debtor_ID',
-                            'SO_Target_CompletionDatePerPO',
-                            'SO_Item_Description',
-                            'SO_LiftNo',
-                            'SO_Qty',
-                            'SO_UOM',
-                            'SO_OIR_SentTo_Finance',
-                            'SO_RQ_No',
-                            'SO_Remark',
-                            'PCH_PO_to_TELC_MS',
-                            'PCH_ETA',
-                            'PCH_PO_ReceiveDate',
-                            'PCH_Transfered_Qty',
-                            'PCH_Doc',
-                            'PCH_Date',
-                            'PCH_Inform Finance on',
-                            'PCH_Remark',
-                            'MTC_RQ_No',
-                            'MTC_RQ_Date',
-                            'MTC_Job_Done',
-                            'MTC_Target_Completion',
-                            'MTC_SBK',
-                            'MTC_JO',
-                            'MTC_DN_DO',
-                            'MTC_BA',
-                            'MTC_Other',
-                            'MTC_Remarks',
-                            'ACTG_Unit_Price',
-                            'ACTG_Currency',
-                            'ACTG_Currency_Rate',
-                            'ACTG_Local_Net_Total',
-                            'ACTG_Invoicing',
-                            'ACTG_Inv_Date',
-                            'ACTG_Remarks',
-                            'ACTG_Payment_Receipt',
-                            'ACTG_Payment_Rcpt_Date'
-                        ];
-
-                        // Menghapus atribut yang tidak perlu
-                        foreach ($excludeAttributes as $attribute) {
-                            unset($newRecord->$attribute);
-                        }
-
-                        // Mengatur nilai untuk beberapa field
-                        $newRecord->SO_ID = "# NEW #";  // Set nilai SO_ID menjadi NEW
-                        $newRecord->SO_No = "# NEW #";  // Set nilai SO_No menjadi NEW
-
-                        // Set nilai tanggal
-                        $newRecord->SO_Date = now();
-                        $newRecord->SO_Target_CompletionDatePerPO = now();  // Set target tanggal selesai
-
-                        // Set status dan informasi pengguna yang memperbarui
-                        $newRecord->SO_Status = "NEW"; // Pastikan formatnya sesuai (gunakan 'NEW' atau lainnya)
-                        $newRecord->updated_by = Auth::user()->name;
-                        $newRecord->updated_at = now();
-
-                        // Simpan record yang baru
-                        $newRecord->save();
-                    }),
- */
+               
 
                 Tables\Actions\ActionGroup::make([
 
@@ -833,6 +707,10 @@ class TransResource extends Resource
                     //->requiresConfirmation()
                     //->modalHeading('Create New Record')
                     //->modalSubheading('Are you sure you want to create new record?'),
+
+
+
+                    
 
 
                     Action::make('replicate')
@@ -892,9 +770,7 @@ class TransResource extends Resource
                             $newReplicaRecord->save();
                             // $this->notify('success', 'Record successfully replicated/duplicated.');
                         })
-                    //->requiresConfirmation()
-                    //->modalHeading('Replicate / Duplicate This Record')
-                    // ->modalSubheading('Are you sure you want to replicate this record?'),
+                   
 
                 ]),
 
@@ -918,59 +794,7 @@ class TransResource extends Resource
                     //  Tables\Actions\DeleteBulkAction::make(),
                 ]),
 
-
-
-
-
-
-
-                /* BulkAction::make('Set Status')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->form([
-                            Select::make('selected_status')
-                                ->options([
-                                    'ALL SENT' => 'All Sent',
-                                    'CANCELED' => 'Canceled',
-                                    'COMPLETED' => 'Completed',
-                                    'DELIVERED PARTIAL' => 'Delivered Partial',
-                                    'INVOICED' => 'Invoiced',
-                                    'ITEM INCOMPLETE' => 'Item Incomplete',
-                                    'OUTSTANDING' => 'Outstanding',
-                                    'PAYMENT' => 'Payment',
-                                    'TAKE ID' => 'Take ID',
-                                    'W/OFF' => 'W/OFF',
-                                ])
-                                ->required(),
-                        ])
-                        ->action(function (Collection $records, array $data) {
-                            $count = $records->count(); // Count the selected records
-    
-                            if ($count > 10) {
-                                return [
-                                    'message' => "Gagal! Anda hanya dapat mengupdate maksimal 10 record sekaligus.",
-                                    'status' => 'error', // Display error message
-                                ];
-                            }
-    
-                            // Update each record with the selected status
-                            $records->each->update([
-                                'SO_Status' => $data['selected_status'],
-                                'updated_by' => Auth::user()->name,
-                                'updated_at' => now(),
-                            ]);
-    
-                            return [
-                                'message' => "{$count} record berhasil diperbarui.",
-                                'status' => 'success',
-                            ];
-                        })
-                       
-                    ]), */
-
-
-
-
+                // Bulk action untuk Set Status 'ALL SENT'
                 BulkAction::make('ALL SENT')
                     ->Label('ALL SENT')
                     ->tooltip('Set Status ALL SENT')
