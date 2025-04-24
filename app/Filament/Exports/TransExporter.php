@@ -15,7 +15,7 @@ class TransExporter extends Exporter
     {
         return [
             ExportColumn::make('ID')->label('ID'),
-            ExportColumn::make('ID_ORI')->label('ID ORI'),
+            //ExportColumn::make('ID_ORI')->label('ID ORI'),
             ExportColumn::make('SO_ID')->label('SO ID'),
             ExportColumn::make('SO_No')->label('SO No'),
             ExportColumn::make('SO_Date')->label('SO Date'),

@@ -211,3 +211,17 @@ Give a ⭐️ if this project helped you!
 =====
 habis create resource
 php artisan shield:generate --all
+
+===s
+supervisor
+135  sudo apt update
+  136  sudo apt install supervisor -y
+  137  nano /etc/supervisor/conf.d/laravel-worker.conf 
+  138  nano /etc/supervisor/conf.d/laravel-worker.conf 
+  139  sudo supervisorctl reread
+  140  sudo supervisorctl update
+  141  sudo supervisorctl start laravel-queue:*
+  142  sudo supervisorctl status
+  143  sudo supervisorctl restart laravel-queue:*
+  144  sudo supervisorctl status
+  tail -f /var/www/teu/storage/logs/laravel-queue.log
