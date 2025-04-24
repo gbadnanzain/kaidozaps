@@ -729,13 +729,18 @@ class TransResource extends Resource
 
             ])
             ->headerActions([
-                Action::make('exportXls')
+                ExportAction::make()
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->label('All Data Export')
+                    ->exporter(TransExporter::class)
+                // EXPORT
+                /* ExportAction::make('exportXls')
                     ->label('Export XLS')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->action(function () {
-                        return Excel::download(new TransExporter, 'trans.xls',\Maatwebsite\Excel\Excel::XLS);
-                    }),
-                //ImportAction::make()->importer(BookImporter::class),
+                        return Excel::download( \App\Filament\Exports\TransExporter::class, 'trans.xls');
+                    }), */
+                
             ])
             ->actions([
 
@@ -1013,13 +1018,13 @@ class TransResource extends Resource
                     ->deselectRecordsAfterCompletion(),
 
 
-                ExportBulkAction::make()
-                    ->exporter(TransExporter::class)
+               /*  ExportBulkAction::make()
+                    ->exporter(TransExporter)
                     ->color('info') // Mengubah warna tombol menjadi 'info'
                     ->label('Export Data') // Menambahkan label pada tombol
                     ->icon('heroicon-o-arrow-down-tray')
-                    ->deselectRecordsAfterCompletion() 
-                
+                    ->deselectRecordsAfterCompletion() */
+
 
             ])
             //->deselectRecordsAfterCompletion()
