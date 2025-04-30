@@ -279,7 +279,8 @@ class TransResource extends Resource
                     ->placeholder('Generated from SO_No')
                     //->default(fn($record) => substr($record->SO_No, 0, 4) . '/' . substr($record->SO_No, -4))
                     ->sortable()
-
+                    //->saveUsing(fn($state) => strtoupper($state)) // <--- ini menggantikan dehydrateStateUsing
+                    //->extraAttributes(['style' => 'text-transform: uppercase'])
                     ->searchable(isIndividual: true),
                 TextInputColumn::make('SO_No')
                     ->sortable()
@@ -389,12 +390,23 @@ class TransResource extends Resource
 
                     }),
 
+
                 TextInputColumn::make('SO_DebtorID')
                     ->sortable()
                     //->searchable(isIndividual: true)
                     ->label('Debtor ID')
                     ->placeholder('Enter Debtor ID')
                     ->default('-'),
+
+                TextInputColumn::make('SO_Target_CompletionDatePerPO')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->tooltip('format date DD/MM/YYYY')
+                    //->searchable(isIndividual: true)
+                    ->label('SO Target Completion Date Per PO')
+                    ->placeholder('Enter SO Target Completion Date Per PO')
+                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y'))
+                    ->default(Carbon::now()->format('d/m/Y')),
 
                 TextInputColumn::make('SO_DebtorName')
                     //->weight(FontWeight::Bold)
@@ -426,7 +438,10 @@ class TransResource extends Resource
                     //->searchable(isIndividual: true)
                     ->label('Item Description')
                     ->placeholder('Enter Item Description')
-                    ->default('-'),
+                    ->default('-')
+                    ->extraAttributes([
+                        'style' => 'width: fit-content; white-space: nowrap;',
+                    ]),
 
                 TextInputColumn::make('SO_LiftNo')
                     ->sortable()
@@ -740,7 +755,7 @@ class TransResource extends Resource
                     ->action(function () {
                         return Excel::download( \App\Filament\Exports\TransExporter::class, 'trans.xls');
                     }), */
-                
+
             ])
             ->actions([
 
@@ -1018,7 +1033,7 @@ class TransResource extends Resource
                     ->deselectRecordsAfterCompletion(),
 
 
-               /*  ExportBulkAction::make()
+                /*  ExportBulkAction::make()
                     ->exporter(TransExporter)
                     ->color('info') // Mengubah warna tombol menjadi 'info'
                     ->label('Export Data') // Menambahkan label pada tombol
