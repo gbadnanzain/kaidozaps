@@ -9,7 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateTrans extends CreateRecord
 {
     protected static string $resource = TransResource::class;
-    protected static bool $canCreateAnother = false;
+    protected static bool $canCreateAnother = true;
 
     //customize redirect after create
     public function getRedirectUrl(): string

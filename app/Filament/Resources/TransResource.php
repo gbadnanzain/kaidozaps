@@ -17,7 +17,8 @@ use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Actions\ReplicateAction;
-
+use Filament\Tables\Columns\ColumnGroup;
+use Filament\Support\Enums\Alignment;
 use App\Filament\Exports\TransExporter;
 use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Columns\IconColumn;
@@ -51,6 +52,7 @@ class TransResource extends Resource
     {
         return $query->whereNotIn('SO_Status', ['COMPLETED', 'W/OFF', 'CANCELED']);
     }
+    // #FORM
     public static function form(Form $form): Form
     {
         return $form
@@ -72,6 +74,11 @@ class TransResource extends Resource
                                 // Set nilai SO_ID berdasarkan perubahan di SO_No
                                 $set('SO_ID', substr($state, 0, 4) . '/' . substr($state, -3));
                             }) */,
+                        Forms\Components\TextInput::make('SO_ID')
+
+                            ->label('SO ID')
+                            ->required()
+                            ->columnSpan(6),
                         Forms\Components\Select::make('SO_Status')
                             ->label('Status')
                             ->required()
@@ -103,19 +110,19 @@ class TransResource extends Resource
                             })
                             ->columnSpan(10),
 
-                        Forms\Components\TextInput::make('SO_ID')
-                            ->label('SO ID')
-                            ->required()
-                            ->columnSpan(6),
+
 
 
 
                         Forms\Components\DatePicker::make('SO_Date')
                             ->label('SO Date')
                             ->required()
+
                             ->placeholder('Select a date')
                             ->displayFormat('d/m/Y')
-                            ->columnSpan(4),
+                            ->columnSpan(4)
+                            //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y'))
+                            ->default(Carbon::now()->format('d/m/Y')),
                         Forms\Components\TextInput::make('SO_DebtorID')
                             ->label('Debt. ID')
                             ->required()
@@ -126,7 +133,9 @@ class TransResource extends Resource
                             ->required()
                             ->placeholder('Select a date')
                             ->displayFormat('d/m/Y')
-                            ->columnSpan(8),
+                            ->columnSpan(8)
+                            //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('d/m/Y'))
+                            ->default(Carbon::now()->format('d/m/Y')),
                         Forms\Components\TextInput::make('SO_DebtorName')
                             ->label('Debtor Name')
                             ->required()
@@ -261,355 +270,380 @@ class TransResource extends Resource
             ]);
     }
 
+    // #TABLE
     public static function table(Table $table): Table
     {
+
         return $table
             ->columns([
+                // #GROUP COLUMN
+                ColumnGroup::make('## SALES ORDER GROUP ##', [
+                    TextColumn::make('ID')
+                        /* ->copyable()
+                        ->copyMessage('SO ID copied')
+                        ->copyMessageDuration(1500) */
+                        ->sortable()
+                        //->searchable()
+                        ->toggleable()
+                        ->disabled()
+                        ->label('ID'),
+                    TextInputColumn::make('SO_ID')
 
-                TextInputColumn::make('ID')
-                    ->sortable()
-                    //->searchable()
-                    ->toggleable()
-                    ->disabled()
-                    ->label('ID'),
-                TextInputColumn::make('SO_ID')
+                        ->label('SO ID')
+                        ->toggleable()
+                        ->placeholder('Generated from SO_No')
+                        //->default(fn($record) => substr($record->SO_No, 0, 4) . '/' . substr($record->SO_No, -4))
+                        ->sortable()
+                        //->saveUsing(fn($state) => strtoupper($state)) // <--- ini menggantikan dehydrateStateUsing
+                        //->extraAttributes(['style' => 'text-transform: uppercase'])
+                        ->searchable(isIndividual: true),
+                    TextInputColumn::make('SO_No')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Sales Order No')
+                        ->placeholder('Enter SO No')
+                        ->default('')
+                        ->toggleable(),
 
-                    ->label('SO ID')
-                    ->toggleable()
-                    ->placeholder('Generated from SO_No')
-                    //->default(fn($record) => substr($record->SO_No, 0, 4) . '/' . substr($record->SO_No, -4))
-                    ->sortable()
-                    //->saveUsing(fn($state) => strtoupper($state)) // <--- ini menggantikan dehydrateStateUsing
-                    //->extraAttributes(['style' => 'text-transform: uppercase'])
-                    ->searchable(isIndividual: true),
-                TextInputColumn::make('SO_No')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Sales Order No')
-                    ->placeholder('Enter SO No')
-                    ->default('')
-                    ->toggleable(),
-
-                TextInputColumn::make('SO_Date')
+                    TextInputColumn::make('SO_Date')
 
 
-                    ->sortable()
-                    //->searchable(isIndividual: true)
+                        ->sortable()
+                        //->searchable(isIndividual: true)
 
-                    ->label('Sales Order Date')
-                    ->tooltip('format date DD/MM/YYYY')
+                        ->label('Sales Order Date')
+                        ->tooltip('format date DD/MM/YYYY')
 
-                    ->placeholder('Enter SO Date')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y')),
+                        ->placeholder('Enter SO Date')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y')),
 
-                TextColumn::make('SO_Status')
-                    ->badge()
-                    ->label('SO Status')
-                    ->sortable()
-                    ->columnSpan(10)
-                    ->toggleable()
-                    ->icon(icon: fn(string $state) => match ($state) {
-                        'ALL SENT' => 'heroicon-o-check-circle',
-                        'CANCELED' => 'heroicon-o-x-circle',
-                        'COMPLETED' => 'heroicon-o-check-circle',
-                        'DELIVERED PARTIAL' => 'heroicon-o-truck',
-                        'INVOICED' => 'heroicon-o-document',
-                        'ITEM INCOMPLETE' => 'heroicon-o-exclamation-circle',
-                        'OUTSTANDING' => 'heroicon-o-clock',
-                        'PAYMENT' => 'heroicon-o-credit-card',
-                        'TAKE ID' => 'heroicon-o-identification', // Changed to valid icon
-                        'W/OFF' => 'heroicon-o-x-mark',
-                        '#Replicated#' => 'heroicon-o-hand-raised',
-                        default => 'heroicon-o-hand-raised',
-                    })
-                    ->color(fn(string $state): string => match ($state) {
-                        'ALL SENT' => 'primary',  // bg-blue-500
-                        'CANCELED' => 'danger',   // bg-red-500
-                        'COMPLETED' => 'success', // bg-green-500
-                        'DELIVERED PARTIAL' => 'warning', // bg-yellow-500
-                        'INVOICED' => 'primary', // bg-purple-500
-                        'ITEM INCOMPLETE' => 'warning', // bg-orange-500
-                        'OUTSTANDING' => 'primary', // bg-gray-500
-                        'PAYMENT' => 'success',    // bg-teal-500
-                        'TAKE ID' => 'warning',  // bg-indigo-500
-                        'W/OFF' => 'danger',      // bg-pink-500
-                        '#Replicated#' => 'gray', // bg-gray-700
-                        default => 'gray', // Default color if no match
-                    })
-                    ->html(fn(string $state): string => match ($state) {
-                        'ALL SENT' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    TextColumn::make('SO_Status')
+                        ->badge()
+                        ->label('SO Status')
+                        ->sortable()
+                        ->columnSpan(10)
+                        ->toggleable()
+                        ->icon(icon: fn(string $state) => match ($state) {
+                            'ALL SENT' => 'heroicon-o-check-circle',
+                            'CANCELED' => 'heroicon-o-x-circle',
+                            'COMPLETED' => 'heroicon-o-check-circle',
+                            'DELIVERED PARTIAL' => 'heroicon-o-truck',
+                            'INVOICED' => 'heroicon-o-document',
+                            'ITEM INCOMPLETE' => 'heroicon-o-exclamation-circle',
+                            'OUTSTANDING' => 'heroicon-o-clock',
+                            'PAYMENT' => 'heroicon-o-credit-card',
+                            'TAKE ID' => 'heroicon-o-identification', // Changed to valid icon
+                            'W/OFF' => 'heroicon-o-x-mark',
+                            '#Replicated#' => 'heroicon-o-hand-raised',
+                            default => 'heroicon-o-hand-raised',
+                        })
+                        ->color(fn(string $state): string => match ($state) {
+                            'ALL SENT' => 'primary',  // bg-blue-500
+                            'CANCELED' => 'danger',   // bg-red-500
+                            'COMPLETED' => 'success', // bg-green-500
+                            'DELIVERED PARTIAL' => 'warning', // bg-yellow-500
+                            'INVOICED' => 'primary', // bg-purple-500
+                            'ITEM INCOMPLETE' => 'warning', // bg-orange-500
+                            'OUTSTANDING' => 'primary', // bg-gray-500
+                            'PAYMENT' => 'success',    // bg-teal-500
+                            'TAKE ID' => 'warning',  // bg-indigo-500
+                            'W/OFF' => 'danger',      // bg-pink-500
+                            '#Replicated#' => 'gray', // bg-gray-700
+                            default => 'gray', // Default color if no match
+                        })
+                        ->html(fn(string $state): string => match ($state) {
+                            'ALL SENT' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4v16a1 1 0 001 1h16a1 1 0 001-1V4l-8 4-8-4z"/>
         </svg>' . $state, // Paper airplane icon
-                        'CANCELED' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'CANCELED' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>' . $state, // X icon
-                        'COMPLETED' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'COMPLETED' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
         </svg>' . $state, // Checkmark icon
-                        'DELIVERED PARTIAL' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'DELIVERED PARTIAL' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 12V8a4 4 0 118 0v4a4 4 0 11-8 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12V8a4 4 0 118 0v4a4 4 0 11-8 0z"/>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 12v8a4 4 0 014 4h8a4 4 0 014-4v-8"/>
         </svg>' . $state, // Truck icon
-                        'INVOICED' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'INVOICED' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 0v4m0-4h4m-4 0h-4"/>
         </svg>' . $state, // Invoice icon
-                        'ITEM INCOMPLETE' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'ITEM INCOMPLETE' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6"/>
         </svg>' . $state, // Exclamation icon
-                        'OUTSTANDING' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'OUTSTANDING' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 0v4m0-4h4m-4 0h-4"/>
         </svg>' . $state, // Clock icon
-                        'PAYMENT' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'PAYMENT' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-teal-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v18H3z"/>
         </svg>' . $state, // Credit card icon
-                        'TAKE ID' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'TAKE ID' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10h6v4H9z"/>
         </svg>' . $state, // ID card icon
-                        'W/OFF' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            'W/OFF' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2 2 2M12 10v4"/>
         </svg>' . $state, // Minus circle icon
-                        '#Replicated#' =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            '#Replicated#' =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4v16a1 1 0 001 1h16a1 1 0 001-1V4l-8 4-8-4z"/>
         </svg>' . $state, // Copy icon
-                        default =>
-                        '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            default =>
+                            '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 inline-block mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2v20M2 12h20"/>
         </svg>' . $state, // Default circle icon
 
-                    }),
+                        }),
 
-
-                TextInputColumn::make('SO_DebtorID')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Debtor ID')
-                    ->placeholder('Enter Debtor ID')
-                    ->default('-'),
-
-                TextInputColumn::make('SO_Target_CompletionDatePerPO')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->tooltip('format date DD/MM/YYYY')
-                    //->searchable(isIndividual: true)
-                    ->label('SO Target Completion Date Per PO')
-                    ->placeholder('Enter SO Target Completion Date Per PO')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y'))
-                    ->default(Carbon::now()->format('d/m/Y')),
-
-                TextInputColumn::make('SO_DebtorName')
-                    //->weight(FontWeight::Bold)
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Debtor Name')
-                    ->placeholder('Enter Debtor Name')
-                    ->default('-'),
-
-                TextInputColumn::make('SO_Agent')
-                    //->weight(FontWeight::Bold)
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Agent ')
-                    ->placeholder('Enter Agent')
-                    ->default('-'),
-
-                TextInputColumn::make('SO_CustPONo')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Customer PO No')
-                    ->placeholder('Enter Customer PO No')
-                    ->default('-'),
+                    TextInputColumn::make('SO_Target_CompletionDatePerPO')
+                        ->sortable()
+                        ->toggleable(isToggledHiddenByDefault: false)
+                        ->tooltip('format date DD/MM/YYYY')
+                        //->searchable(isIndividual: true)
+                        ->label('SO Target Completion Date Per PO')
+                        ->placeholder('Enter SO Target Completion Date Per PO')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('d/m/Y'))
+                        ->default(Carbon::now()->format('d/m/Y')),
+                    TextInputColumn::make('SO_DebtorID')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Debtor ID')
+                        ->placeholder('Enter Debtor ID')
+                        ->default('-'),
 
 
 
-                TextInputColumn::make('SO_Item_Description')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Item Description')
-                    ->placeholder('Enter Item Description')
-                    ->default('-')
-                    ->extraAttributes([
-                        'style' => 'width: fit-content; white-space: nowrap;',
-                    ]),
+                    TextInputColumn::make('SO_DebtorName')
+                        //->weight(FontWeight::Bold)
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Debtor Name')
+                        ->placeholder('Enter Debtor Name')
+                        ->default('-'),
 
-                TextInputColumn::make('SO_LiftNo')
-                    ->sortable()
-                    ->searchable(isIndividual: true)
-                    ->label('Lift No')
-                    ->placeholder('Enter Lift No')
-                    ->default('-'),
+                    TextInputColumn::make('SO_Agent')
+                        //->weight(FontWeight::Bold)
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Agent ')
+                        ->placeholder('Enter Agent')
+                        ->default('-'),
 
-                TextInputColumn::make('SO_Qty')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('Quantity')
-                    ->placeholder('Enter Quantity')
-                    ->default(''),
-
-                TextInputColumn::make('SO_UOM')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('UOM')
-                    ->placeholder('Enter UOM')
-                    ->default('-'),
-
-                TextInputColumn::make('SO_OIR_SentTo_Finance')
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->label('OIR Sent to Finance')
-                    ->placeholder('Enter OIR Sent to Finance')
-                    ->default(''),
-
-                TextInputColumn::make('SO_RQ_No')
-                    ->label('Request No.')
-                    ->sortable(),
-                //->searchable(isIndividual: true),
+                    TextInputColumn::make('SO_CustPONo')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Customer PO No')
+                        ->placeholder('Enter Customer PO No')
+                        ->default('-'),
 
 
 
-                TextInputColumn::make('PCH_PO_to_TELC_MS')
-                    ->label('PO to TELC MS'),
+                    TextInputColumn::make('SO_Item_Description')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Item Description')
+                        ->placeholder('Enter Item Description')
+                        ->default('-')
+                        ->extraAttributes([
+                            'style' => 'width: fit-content; white-space: nowrap;',
+                        ]),
 
-                TextInputColumn::make('PCH_ETA')
-                    ->label('ETA')
-                    ->sortable(),
-                //->searchable(isIndividual: true),
-                TextInputColumn::make('PCH_PO_ReceiveDate')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('d/m/Y'))
-                    ->label('PO Receive Date')
-                    ->tooltip('format date DD/MM/YYYY')
-                    ->columnSpan(1),
-                TextInputColumn::make('PCH_Transfered_Qty')
-                    ->label('Transf. Qty')
-                    ->columnSpan(1),
-                TextInputColumn::make('PCH_Doc')
-                    ->searchable(isIndividual: true)
-                    ->label('Purchase Document')
-                    ->columnSpan(1),
-                TextInputColumn::make('PCH_Date')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_Date)->format('d/m/Y'))
-                    ->label('Purchase Date')
-                    ->tooltip('format date DD/MM/YYYY')
-                    ->columnSpan(1),
-                /* TextInputColumn::make('PCH_Inform_Finance_on')
+                    TextInputColumn::make('SO_LiftNo')
+                        ->sortable()
+                        ->searchable(isIndividual: true)
+                        ->label('Lift No')
+                        ->placeholder('Enter Lift No')
+                        ->default('-'),
+
+                    TextInputColumn::make('SO_Qty')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('Quantity')
+                        ->placeholder('Enter Quantity')
+                        ->default(''),
+
+                    TextInputColumn::make('SO_UOM')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('UOM')
+                        ->placeholder('Enter UOM')
+                        ->default('-'),
+
+                    TextInputColumn::make('SO_OIR_SentTo_Finance')
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->label('OIR Sent to Finance')
+                        ->placeholder('Enter OIR Sent to Finance')
+                        ->default(''),
+
+                    TextInputColumn::make('SO_RQ_No')
+                        ->label('Request No.')
+                        ->sortable(),
+                    //->searchable(isIndividual: true),
+                ])
+                    ->alignment(Alignment::Left)
+                    ->wrapHeader(),
+
+                // #COLUMN GROUP
+                ColumnGroup::make('## PURCHASE GROUP ##', [
+
+                    TextInputColumn::make('PCH_PO_to_TELC_MS')
+                        ->label('PO to TELC MS'),
+
+                    TextInputColumn::make('PCH_ETA')
+                        ->label('ETA')
+                        ->sortable(),
+                    //->searchable(isIndividual: true),
+                    TextInputColumn::make('PCH_PO_ReceiveDate')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('d/m/Y'))
+                        ->label('PO Receive Date')
+                        ->tooltip('format date DD/MM/YYYY')
+                        ->columnSpan(1),
+                    TextInputColumn::make('PCH_Transfered_Qty')
+                        ->label('Transf. Qty')
+                        ->columnSpan(1),
+                    TextInputColumn::make('PCH_Doc')
+                        ->searchable(isIndividual: true)
+                        ->label('Purchase Document')
+                        ->columnSpan(1),
+                    TextInputColumn::make('PCH_Date')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_Date)->format('d/m/Y'))
+                        ->label('Purchase Date')
+                        ->tooltip('format date DD/MM/YYYY')
+                        ->columnSpan(1),
+                    /* TextInputColumn::make('PCH_Inform_Finance_on')
                     ->label('Inform Finance on')
                     ->columnSpan(1), */
-                TextInputColumn::make('PCH_Remark')
-                    ->label('Purchase Remark')->columnSpan(1)
-                    ->sortable()
-                    //->searchable(isIndividual: true)
-                    ->toggleable(),
+                    TextInputColumn::make('PCH_Remark')
+                        ->label('Purchase Remark')->columnSpan(1)
+                        ->sortable()
+                        //->searchable(isIndividual: true)
+                        ->toggleable(),
+                ])
+                    ->alignment(Alignment::Left)
+                    ->wrapHeader(),
 
-                TextInputColumn::make('MTC_RQ_No')
-                    ->label('MTC Req. No.')
-                    ->sortable()
-                    ->searchable(isIndividual: true)
-                    ->toggleable(),
-                TextInputColumn::make('MTC_RQ_Date')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('d/m/Y'))
-                    ->label('MTC Req. Date')
-                    ->tooltip('format date DD/MM/YYYY')
-                    ->toggleable(),
-                TextInputColumn::make('MTC_Job_Done')
-                    ->label('Job Done')
-                    ->sortable()
-                    //->searchable()
-                    ->toggleable(),
-                TextInputColumn::make('MTC_Target_Completion')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_Target_Completion)->format('d/m/Y'))
-                    ->label('Target Compl. Date')
-                    ->tooltip('format date DD/MM/YYYY')
-                    ->sortable()
-                    ->toggleable(),
-                /* TextInputColumn::make('MTC_SBK')
+                // #GROUP COLUMN
+                ColumnGroup::make('## MAINTENANCE ##', [
+
+                    TextInputColumn::make('MTC_RQ_No')
+                        ->label('MTC Req. No.')
+                        ->sortable()
+                        ->searchable(isIndividual: true)
+                        ->toggleable(),
+                    TextInputColumn::make('MTC_RQ_Date')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('d/m/Y'))
+                        ->label('MTC Req. Date')
+                        ->tooltip('format date DD/MM/YYYY')
+                        ->toggleable(),
+                    TextInputColumn::make('MTC_Job_Done')
+                        ->label('Job Done')
+                        ->sortable()
+                        //->searchable()
+                        ->toggleable(),
+                    TextInputColumn::make('MTC_Target_Completion')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_Target_Completion)->format('d/m/Y'))
+                        ->label('MTC Target Compl. Date')
+                        ->tooltip('format date DD/MM/YYYY')
+                        ->sortable()
+                        ->toggleable(),
+                    /* TextInputColumn::make('MTC_SBK')
                     ->searchable(isIndividual: true)
                     ->label('SBK')
                     ->sortable()
                     //->searchable()
                     ->toggleable(), */
-                TextInputColumn::make('MTC_JO')
-                    ->label('Job Order')
-                    ->toggleable(),
-                /* TextInputColumn::make('MTC_DN_DO')
+                    TextInputColumn::make('MTC_JO')
+                        ->label('Job Order')
+                        ->toggleable(),
+                    /* TextInputColumn::make('MTC_DN_DO')
                 ->searchable(isIndividual: true)
                     ->label('DN / DO')
                     ->sortable()
                     ->toggleable(), */
-                TextInputColumn::make('MTC_BA')
-                    ->label('BA')
-                    ->sortable()
-                    ->searchable(isIndividual: true)
-                    ->toggleable(),
-                TextInputColumn::make('MTC_Other')
-                    ->label('Other MTC Info')
-                    ->toggleable(),
-                TextInputColumn::make('MTC_Remarks')
-                    ->label('MTC Remarks')
-                    ->sortable()
-                    //->searchable()
-                    ->toggleable(),
-                TextInputColumn::make('ACTG_Unit_Price')
-                    ->label('Unit Price')
+                    TextInputColumn::make('MTC_BA')
+                        ->label('BA')
+                        ->sortable()
+                        ->searchable(isIndividual: true)
+                        ->toggleable(),
+                    TextInputColumn::make('MTC_Other')
+                        ->label('Other MTC Info')
+                        ->toggleable(),
+                    TextInputColumn::make('MTC_Remarks')
+                        ->label('MTC Remarks')
+                        ->sortable()
+                        //->searchable()
+                        ->toggleable(),
+                ])
+                    ->alignment(Alignment::Left)
+                    ->wrapHeader(),
+                // #COLUMN GROUP
+                ColumnGroup::make('## ACCOUNTING GROUP ##', [
+                    TextInputColumn::make('ACTG_Unit_Price')
+                        ->label('Unit Price')
 
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Currency')
-                    ->label('Currency')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Currency_Rate')
-                    ->label('Currency Rate')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Local_Net_Total')
-                    ->label('Local Net Total')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Currency')
+                        ->label('Currency')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Currency_Rate')
+                        ->label('Currency Rate')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Local_Net_Total')
+                        ->label('Local Net Total')
 
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Invoicing')
-                    ->label('Invoicing')
-                    ->toggleable(),
-                TextInputColumn::make('ACTG_Inv_Date')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Inv_Date)->format('d/m/Y'))
-                    ->label('Invoice Date')
-                    ->tooltip('format date DD/MM/YYYY')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Payment_Receipt')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Invoicing')
+                        ->label('Invoicing')
+                        ->toggleable(),
+                    TextInputColumn::make('ACTG_Inv_Date')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Inv_Date)->format('d/m/Y'))
+                        ->label('Invoice Date')
+                        ->tooltip('format date DD/MM/YYYY')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Payment_Receipt')
 
-                    ->label('Payment Receipt Date')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Payment_Rcpt_Date')
-                    ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Payment_Rcpt_Date)->format('d/m/Y'))
-                    ->label('Payment Receipt Date')
-                    ->tooltip('format date d/m/YYYY')
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextInputColumn::make('ACTG_Remarks')
-                    ->label('Accounting Remarks')
-                    ->sortable()
-                    //->searchable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                        ->label('Payment Receipt Date')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Payment_Rcpt_Date')
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Payment_Rcpt_Date)->format('d/m/Y'))
+                        ->label('Payment Receipt Date')
+                        ->tooltip('format date d/m/YYYY')
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextInputColumn::make('ACTG_Remarks')
+                        ->label('Accounting Remarks')
+                        ->sortable()
+                        //->searchable()
+                        ->toggleable(isToggledHiddenByDefault: false),
 
 
-                TextInputColumn::make('updated_by')
-                    ->label('Updated by')
-                    ->disabled()
-                    ->columnSpan(6)
-                    ->default(Auth::check() ? Auth::user()->name : 'Guest'),
-                TextInputColumn::make('updated_at')
-                    ->label('Updated at')
-                    ->sortable()
-                    ->disabled()->columnSpan(6),
+                    TextInputColumn::make('updated_by')
+                        ->label('Updated by')
+                        ->disabled()
+                        ->columnSpan(6)
+                        ->default(Auth::check() ? Auth::user()->name : 'Guest'),
+                    TextInputColumn::make('updated_at')
+                        ->label('Updated at')
+                        ->sortable()
+                        ->disabled()->columnSpan(6),
+                ])
+                    ->alignment(Alignment:: Left)
+                    ->wrapHeader(),
             ])
+
             ->striped()
             ->recordClasses(fn($record) => 'hover:bg-yellow-100 focus:bg-yellow-200')
-            ->defaultSort('SO_ID', 'desc')
+            ->defaultSort('ID', 'desc')
             ->filters([
                 // Filter berdasarkan rentang tanggal (current month & year)
 
@@ -698,11 +732,12 @@ class TransResource extends Resource
                     ->form([
                         Forms\Components\DatePicker::make('from')
                             ->label('Target Completion From')
-                            ->default(Carbon::now()->subYear()->startOfYear()),  // Default: awal tahun lalu
+                        //->default(Carbon::now()->subYear()->startOfYear())
+                        ,  // Default: awal tahun lalu
 
                         Forms\Components\DatePicker::make('to')
                             ->label('Target Completion To')
-                            ->default(Carbon::now()->endOfMonth()),  // Default: akhir bulan ini
+                        //->default(Carbon::now()->endOfMonth()),  // Default: akhir bulan ini
                     ])
                     ->query(function ($query, $data) {
                         if (isset($data['from']) && isset($data['to'])) {
