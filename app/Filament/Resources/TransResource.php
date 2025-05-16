@@ -312,10 +312,10 @@ class TransResource extends Resource
                         //->searchable(isIndividual: true)
 
                         ->label('Sales Order Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YY/MM/DD')
 
                         ->placeholder('Enter SO Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y')),
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('Y/m/d')),
 
                     TextColumn::make('SO_Status')
                         ->badge()
@@ -408,11 +408,11 @@ class TransResource extends Resource
                     TextInputColumn::make('SO_Target_CompletionDatePerPO')
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: false)
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         //->searchable(isIndividual: true)
                         ->label('SO Target Completion Date Per PO')
                         ->placeholder('Enter SO Target Completion Date Per PO')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('Y/m/d'))
                         ->default(Carbon::now()->format('d/m/Y')),
                     TextInputColumn::make('SO_DebtorID')
                         ->sortable()
@@ -505,9 +505,9 @@ class TransResource extends Resource
                         ->sortable(),
                     //->searchable(isIndividual: true),
                     TextInputColumn::make('PCH_PO_ReceiveDate')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('Y/m/d'))
                         ->label('PO Receive Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->columnSpan(1),
                     TextInputColumn::make('PCH_Transfered_Qty')
                         ->label('Transf. Qty')
@@ -517,9 +517,9 @@ class TransResource extends Resource
                         ->label('Purchase Document')
                         ->columnSpan(1),
                     TextInputColumn::make('PCH_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_Date)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_Date)->format('Y/m/d'))
                         ->label('Purchase Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->columnSpan(1),
                     /* TextInputColumn::make('PCH_Inform_Finance_on')
                     ->label('Inform Finance on')
@@ -542,9 +542,9 @@ class TransResource extends Resource
                         ->searchable(isIndividual: true)
                         ->toggleable(),
                     TextInputColumn::make('MTC_RQ_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('Y/m/d'))
                         ->label('MTC Req. Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->toggleable(),
                     TextInputColumn::make('MTC_Job_Done')
                         ->label('Job Done')
@@ -552,9 +552,9 @@ class TransResource extends Resource
                         //->searchable()
                         ->toggleable(),
                     TextInputColumn::make('MTC_Target_Completion')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_Target_Completion)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_Target_Completion)->format('Y/m/d'))
                         ->label('MTC Target Compl. Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->sortable()
                         ->toggleable(),
                     /* TextInputColumn::make('MTC_SBK')
@@ -607,18 +607,18 @@ class TransResource extends Resource
                         ->label('Invoicing')
                         ->toggleable(),
                     TextInputColumn::make('ACTG_Inv_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Inv_Date)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Inv_Date)->format('Y/m/d'))
                         ->label('Invoice Date')
-                        ->tooltip('format date DD/MM/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextInputColumn::make('ACTG_Payment_Receipt')
 
                         ->label('Payment Receipt Date')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextInputColumn::make('ACTG_Payment_Rcpt_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Payment_Rcpt_Date)->format('d/m/Y'))
+                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Payment_Rcpt_Date)->format('Y/m/d'))
                         ->label('Payment Receipt Date')
-                        ->tooltip('format date d/m/YYYY')
+                        ->tooltip('format date YYYY/MM/DD')
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextInputColumn::make('ACTG_Remarks')
                         ->label('Accounting Remarks')
