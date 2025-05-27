@@ -122,14 +122,16 @@ class TransResource extends Resource
                         Forms\Components\DatePicker::make('SO_Date')
                             ->label('SO Date')
                             ->required()
-                            ->date('d/m/Y')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y')  // Format yang ditampilkan ke user
+                            ->format('Y-m-d')
 
                             ->placeholder('Select a date')
 
                             ->displayFormat('d/m/Y') // Tampilan untuk user
                             //->format('Y-m-d')        // Format disimpan ke DB
-                            ->native(false)
-                            ->columnSpan(6),
+                            //->native(false)
+                            ->columnSpan(8),
                         Forms\Components\TextInput::make('SO_DebtorID')
                             ->label('Debt. ID')
                             ->required()
@@ -317,7 +319,7 @@ class TransResource extends Resource
 
 
 
-                   
+
 
                     TextInputColumn::make('SO_ID')
 
@@ -343,7 +345,14 @@ class TransResource extends Resource
                         ->date('d/m/Y') // Format tanggal
                         ->sortable()
                     //->placeholder('Enter SO Date')
-                    ,
+                    // TextColumn::make('SO_Date')
+                    //     ->label('Sales Order Date')
+                    //     ->placeholder('DD/MM/YYYY')
+                    //     ->mask('99/99/9999') // Digunakan di FORM, bukan TABLE
+                    //     ->required()
+                    //     ->rule('regex:/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/[0-9]{4}$/')
+                    //     ->helperText('Format: DD/MM/YYYY')
+                        ,
 
                     TextColumn::make('SO_Status')
                         ->badge()
@@ -841,97 +850,98 @@ class TransResource extends Resource
                     }), */
 
             ])
-            ->actions([
+            ->actions(
+                [
 
 
-                //Tables\Actions\ActionGroup::make(
-                //    [
+                    //Tables\Actions\ActionGroup::make(
+                    //    [
 
-                // ->requiresConfirmation()
-                //->requiresConfirmation()
-                //->modalHeading('Create New Record')
-                //->modalSubheading('Are you sure you want to create new record?'),
-
-
+                    // ->requiresConfirmation()
+                    //->requiresConfirmation()
+                    //->modalHeading('Create New Record')
+                    //->modalSubheading('Are you sure you want to create new record?'),
 
 
 
 
-                Action::make('replicate')
-                   
-                    ->color('danger')
-                    ->icon('heroicon-o-document-duplicate')
-                    ->tooltip("Duplicate This")
-                    ->action(function ($record) {
-                        $newReplicaRecord = $record->replicate();
-
-                        // List of attributes to exclude
-                        $excludeAttributes = [
-                            'SO_Item_Description',
-                            'SO_LiftNo',
-                            'SO_Qty',
-                            'SO_UOM',
-                            'SO_OIR_SentTo_Finance',
-                            'SO_RQ_No',
-                            'SO_Remark',
-                            'PCH_PO_to_TELC_MS',
-                            'PCH_ETA',
-                            'PCH_PO_ReceiveDate',
-                            'PCH_Transfered_Qty',
-                            'PCH_Doc',
-                            'PCH_Date',
-                            'PCH_Inform Finance on',
-                            'PCH_Remark',
-                            'MTC_RQ_No',
-                            'MTC_RQ_Date',
-                            'MTC_Job_Done',
-                            'MTC_Target_Completion',
-                            'MTC_SBK',
-                            'MTC_JO',
-                            'MTC_DN_DO',
-                            'MTC_BA',
-                            'MTC_Other',
-                            'MTC_Remarks',
-                            'ACTG_Unit_Price',
-                            'ACTG_Currency',
-                            'ACTG_Currency_Rate',
-                            'ACTG_Local_Net_Total',
-                            'ACTG_Invoicing',
-                            'ACTG_Inv_Date',
-                            'ACTG_Remarks',
-                            'ACTG_Payment_Receipt',
-                            'ACTG_Payment_Rcpt_Date'
-                        ];
-
-                        // Loop through attributes to exclude and unset them from the new record
-                        foreach ($excludeAttributes as $attribute) {
-                            unset($newReplicaRecord->$attribute);
-                        }
-                        $newReplicaRecord->SO_ID = $record->SO_ID;
-                        $newReplicaRecord->SO_Status =   $record->SO_Status;
-                        $newReplicaRecord->updated_by = Auth::user()->name;
-
-                        $newReplicaRecord->updated_at = now();
-
-                        // Simpan record yang baru
-                        $newReplicaRecord->save();
-                        // $this->notify('success', 'Record successfully replicated/duplicated.');
-                    })
-
-                   
-                    
 
 
-                //]
-                //),
+                    Action::make('replicate')
 
-                /* CreateAction::make()
+                        ->color('danger')
+                        ->icon('heroicon-o-document-duplicate')
+                        ->tooltip("Duplicate This")
+                        ->action(function ($record) {
+                            $newReplicaRecord = $record->replicate();
+
+                            // List of attributes to exclude
+                            $excludeAttributes = [
+                                'SO_Item_Description',
+                                'SO_LiftNo',
+                                'SO_Qty',
+                                'SO_UOM',
+                                'SO_OIR_SentTo_Finance',
+                                'SO_RQ_No',
+                                'SO_Remark',
+                                'PCH_PO_to_TELC_MS',
+                                'PCH_ETA',
+                                'PCH_PO_ReceiveDate',
+                                'PCH_Transfered_Qty',
+                                'PCH_Doc',
+                                'PCH_Date',
+                                'PCH_Inform Finance on',
+                                'PCH_Remark',
+                                'MTC_RQ_No',
+                                'MTC_RQ_Date',
+                                'MTC_Job_Done',
+                                'MTC_Target_Completion',
+                                'MTC_SBK',
+                                'MTC_JO',
+                                'MTC_DN_DO',
+                                'MTC_BA',
+                                'MTC_Other',
+                                'MTC_Remarks',
+                                'ACTG_Unit_Price',
+                                'ACTG_Currency',
+                                'ACTG_Currency_Rate',
+                                'ACTG_Local_Net_Total',
+                                'ACTG_Invoicing',
+                                'ACTG_Inv_Date',
+                                'ACTG_Remarks',
+                                'ACTG_Payment_Receipt',
+                                'ACTG_Payment_Rcpt_Date'
+                            ];
+
+                            // Loop through attributes to exclude and unset them from the new record
+                            foreach ($excludeAttributes as $attribute) {
+                                unset($newReplicaRecord->$attribute);
+                            }
+                            $newReplicaRecord->SO_ID = $record->SO_ID;
+                            $newReplicaRecord->SO_Status =   $record->SO_Status;
+                            $newReplicaRecord->updated_by = Auth::user()->name;
+
+                            $newReplicaRecord->updated_at = now();
+
+                            // Simpan record yang baru
+                            $newReplicaRecord->save();
+                            // $this->notify('success', 'Record successfully replicated/duplicated.');
+                        })
+
+
+
+
+
+                    //]
+                    //),
+
+                    /* CreateAction::make()
                     ->label('New Record [Form]')
                     ->color('warning'),
 
                 Tables\Actions\EditAction::make()
                     ->label('Edit [Form]'), */
-                // Tables\Actions\DeleteAction::make(),
+                    // Tables\Actions\DeleteAction::make(),
 
 
 
@@ -939,11 +949,11 @@ class TransResource extends Resource
 
 
 
-            ]
-            
+                ]
+
             )
             ->actionsPosition(ActionsPosition::BeforeColumns)
-            
+
 
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -1138,7 +1148,6 @@ class TransResource extends Resource
             ])
             //->deselectRecordsAfterCompletion()
         ;
-        
     }
 
     public static function getRelations(): array
