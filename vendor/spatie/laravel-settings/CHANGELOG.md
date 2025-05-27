@@ -6,6 +6,43 @@ All notable changes to `laravel-settings` will be documented in this file
 
 - Make `spatie/data-transfer-object` dependency optional. (#160)
 
+## 3.4.3 - 2025-04-11
+
+### What's Changed
+
+* Do not save settings with missing migrations by @gazben in https://github.com/spatie/laravel-settings/pull/313
+
+**Full Changelog**: https://github.com/spatie/laravel-settings/compare/3.4.2...3.4.3
+
+## 3.4.2 - 2025-02-14
+
+### What's Changed
+
+* Fill missing settings with default values by @gazben in https://github.com/spatie/laravel-settings/pull/298
+
+### New Contributors
+
+* @gazben made their first contribution in https://github.com/spatie/laravel-settings/pull/298
+
+**Full Changelog**: https://github.com/spatie/laravel-settings/compare/3.4.1...3.4.2
+
+## 3.4.1 - 2025-01-31
+
+### What's Changed
+
+* chore(deps): bump dependabot/fetch-metadata from 2.2.0 to 2.3.0 by @dependabot in https://github.com/spatie/laravel-settings/pull/309
+* Change out of date stubs in README by @GrandadEvans in https://github.com/spatie/laravel-settings/pull/310
+* Support Illuminate\Support\Carbon as cast by @Propaganistas in https://github.com/spatie/laravel-settings/pull/311
+* chore: fix typo by @danjohnson95 in https://github.com/spatie/laravel-settings/pull/306
+
+### New Contributors
+
+* @GrandadEvans made their first contribution in https://github.com/spatie/laravel-settings/pull/310
+* @Propaganistas made their first contribution in https://github.com/spatie/laravel-settings/pull/311
+* @danjohnson95 made their first contribution in https://github.com/spatie/laravel-settings/pull/306
+
+**Full Changelog**: https://github.com/spatie/laravel-settings/compare/3.4.0...3.4.1
+
 ## 3.4.0 - 2024-09-20
 
 ### What's Changed

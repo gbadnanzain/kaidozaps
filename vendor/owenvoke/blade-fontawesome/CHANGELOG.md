@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com), and this 
 
 ## Unreleased
 
+## v2.9.1 - 2025-03-28
+
+### Fixed
+- Resolve correct custom icons path ([#94](https://github.com/owenvoke/blade-fontawesome/pull/94))
+
+## v2.9.0 - 2025-02-17
+
+### Added
+- Add support for Laravel 12 ([#93](https://github.com/owenvoke/blade-fontawesome/pull/93))
+
+### Changed
+- Update to Font Awesome v6.7.2 ([#91](https://github.com/owenvoke/blade-fontawesome/pull/91))
+
 ## v2.8.0 - 2024-11-25
 
 ### Changed

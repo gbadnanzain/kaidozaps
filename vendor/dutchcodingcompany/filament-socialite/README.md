@@ -98,7 +98,7 @@ https://example.com/oauth/callback/github
 If in doubt, run `php artisan route:list` to see which routes are available to you.
 
 ### CSRF protection
-_(Laravel 11.x users can ignore this section)_
+_(Only applicable to Laravel 10.x users can ignore this section)_
 
 If your third-party provider calls the OAuth callback using a `POST` request, you need to add the callback route to the
 exception list in your `VerifyCsrfToken` middleware. This can be done by adding the url to the `$except` array:
@@ -110,7 +110,7 @@ protected $except = [
 ];
 ````
 
-For Laravel 11.x users, this exception is automatically added by our service provider.
+For Laravel 11.x (or newer) users, this exception is automatically added by our service provider.
 
 See [Socialite Providers](https://socialiteproviders.com/) for additional Socialite providers.
 
@@ -286,9 +286,9 @@ There are a few events dispatched during the authentication process:
 
 * `InvalidState(InvalidStateException $exception)`: When trying to retrieve the oauth (socialite) user, an invalid state was encountered
 * `Login(FilamentSocialiteUserContract $socialiteUser)`: When a user successfully logs in
-* `Registered(FilamentSocialiteUserContract $socialiteUser)`: When a user and socialite user is successfully registered and logged in (when enabled in config)
-* `RegistrationNotEnabled(string $provider, SocialiteUserContract $oauthUser)`: When a user tries to login with an unknown account and registration is not enabled
-* `SocialiteUserConnected(FilamentSocialiteUserContract $socialiteUser)`: When a socialite user is created for an existing user
+* `Registered(string $provider, SocialiteUserContract $oauthUser, FilamentSocialiteUserContract $socialiteUser)`: When a user and socialite user is successfully registered and logged in (when enabled in config)
+* `RegistrationNotEnabled(string $provider, SocialiteUserContract $oauthUser, ?Auhthenticatable $user)`: When a user tries to login with an unknown account and registration is not enabled
+* `SocialiteUserConnected(string $provider, SocialiteUserContract $oauthUser, FilamentSocialiteUserContract $socialiteUser)`: When a socialite user is created for an existing user
 * `UserNotAllowed(SocialiteUserContract $oauthUser)`: When a user tries to login with an email which domain is not on the allowlist
 
 ## Scopes

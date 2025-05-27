@@ -22,6 +22,9 @@ Force the user to enable two factor authentication before they can use the app
 Create and manage Sanctum personal access tokens
 ![Screenshot of Sanctum token management](./art/sanctum-manage-tokens.png)
 ![Screenshot of Sanctum token management](./art/sanctum-create.png)
+Manage active browser sessions and log out other sessions  
+![Screenshot of Browser Sessions](./art/browser-sessions.png)  
+![Screenshot of Close Browser Sessions Confirmation](./art/close-browser-sessions-confirm-password.png)
 
 ## Installation
 
@@ -319,6 +322,7 @@ BreezyCore::make()
         'update_password' => MyCustomComponent::class, // replaces UpdatePassword component with your own.
         // 'two_factor_authentication' => ,
         // 'sanctum_tokens' =>
+        // 'browser_sessions' =>
     ])
 ```
 
@@ -333,6 +337,8 @@ use Jeffgreco13\FilamentBreezy\Livewire\PersonalInfo;
 
 class CustomPersonalInfo extends PersonalInfo
 {
+    public ?array $only = ['custom_name_field', 'custom_email_field'];
+
     protected function getNameComponent(): Forms\Components\TextInput
     {
         return Forms\Components\TextInput::make('custom_name_field')
@@ -389,6 +395,7 @@ BreezyCore::make()
     ->enableTwoFactorAuthentication(
         force: false, // force the user to enable 2FA before they can use the application (default = false)
         action: CustomTwoFactorPage::class // optionally, use a custom 2FA page
+        authMiddleware: MustTwoFactor::class // optionally, customize 2FA auth middleware or disable it to register manually by setting false
     )
 ```
 
@@ -429,6 +436,42 @@ PasswordButtonAction::make('secure_action')->action('doSecureAction')
 
 // Customize the icon, action, modalHeading and anything else.
 PasswordButtonAction::make('secure_action')->label('Delete')->icon('heroicon-s-shield-check')->modalHeading('Confirmation')->action(fn()=>$this->doAction())
+```
+
+### Browser Sessions
+
+The **Browser Sessions** feature, which is disabled by default, allows users to manage their active sessions on different devices and remotely log out of other browser sessions, enhancing account security. To enable this feature, you must use the `enableBrowserSessions` method.
+
+#### Enabling Browser Sessions
+
+To enable the Browser Sessions feature, use the `enableBrowserSessions` method in `BreezyCore`:
+
+```php
+BreezyCore::make()
+    ->enableBrowserSessions(condition: true) // Enable the Browser Sessions feature (default = true)
+```
+
+#### Viewing Active Sessions
+
+On the user's profile page, active sessions are displayed with device information, including:
+
+- Browser and platform of the device
+- IP address
+- Last activity of the session
+
+#### Logging Out of Other Browser Sessions
+
+Users can log out of other active sessions by entering their password for confirmation. This allows them to securely log out of all other active sessions on other devices.
+
+#### Additional Configuration
+
+If you want to customize the component or modify its behavior, you can override the `browser_sessions` component in the `myProfileComponents` method:
+
+```php
+BreezyCore::make()
+    ->myProfileComponents([
+        'browser_sessions' => \App\Livewire\CustomBrowserSessions::class, // Your custom component
+    ])
 ```
 
 ### Customizing the Registration form

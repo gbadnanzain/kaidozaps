@@ -89,10 +89,27 @@ return [
             ],
             'update' => [
                 'notify' => 'Token updated successfully!',
+                'submit' => [
+                    'label' => 'Update',
+                ],
             ],
             'copied' => [
                 'label' => 'I have copied my token',
             ],
+        ],
+        'browser_sessions' => [
+            'heading' => 'Browser Sessions',
+            'subheading' => 'Manage your active sessions.',
+            'label' => 'Browser Sessions',
+            'content' => 'If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your password.',
+            'device' => 'This device',
+            'last_active' => 'Last active',
+            'logout_other_sessions' => 'Log Out Other Browser Sessions',
+            'logout_heading' => 'Log Out Other Browser Sessions',
+            'logout_description' => 'Please enter your password to confirm you would like to log out of your other browser sessions across all of your devices.',
+            'logout_action' => 'Log Out Other Browser Sessions',
+            'incorrect_password' => 'The password you entered was incorrect. Please try again.',
+            'logout_success' => 'All other browser sessions have been logged out successfully.',
         ],
     ],
     'clipboard' => [

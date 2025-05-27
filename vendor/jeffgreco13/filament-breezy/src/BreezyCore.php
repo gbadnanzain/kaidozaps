@@ -18,6 +18,7 @@ use Filament\Support\Concerns\EvaluatesClosures;
 use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Validation\Rules\Password;
+use Jeffgreco13\FilamentBreezy\Livewire\BrowserSessions;
 use Jeffgreco13\FilamentBreezy\Livewire\PersonalInfo;
 use Jeffgreco13\FilamentBreezy\Livewire\SanctumTokens;
 use Jeffgreco13\FilamentBreezy\Livewire\TwoFactorAuthentication;
@@ -41,6 +42,8 @@ class BreezyCore implements Plugin
 
     protected $twoFactorAuthentication;
 
+    protected $twoFactorAuthenticationMiddleware = MustTwoFactor::class;
+
     protected $forceTwoFactorAuthentication;
 
     protected $twoFactorRouteAction;
@@ -56,6 +59,8 @@ class BreezyCore implements Plugin
     protected $sanctumTokens = false;
 
     protected $sanctumPermissions = ['create', 'view', 'update', 'delete'];
+
+    protected $browserSessions = false;
 
     protected ?string $customMyProfilePageClass = null;
 
@@ -81,7 +86,10 @@ class BreezyCore implements Plugin
             ->pages($this->preparePages());
         // If TwoFactor is enabled, register the middleware.
         if ($this->twoFactorAuthentication) {
-            $panel->authMiddleware([MustTwoFactor::class]);
+            if ($this->twoFactorAuthenticationMiddleware) {
+                $panel->authMiddleware([$this->twoFactorAuthenticationMiddleware]);
+            }
+
             Livewire::component('two-factor-page', Pages\TwoFactorPage::class);
         }
     }
@@ -109,6 +117,12 @@ class BreezyCore implements Plugin
                 Livewire::component('two_factor_authentication', TwoFactorAuthentication::class);
                 $this->myProfileComponents([
                     'two_factor_authentication' => TwoFactorAuthentication::class,
+                ]);
+            }
+            if ($this->browserSessions) {
+                Livewire::component('browser_sessions', BrowserSessions::class);
+                $this->myProfileComponents([
+                    'browser_sessions' => BrowserSessions::class,
                 ]);
             }
 
@@ -264,16 +278,17 @@ class BreezyCore implements Plugin
         return $this->{$key}['navigationGroup'] ?? null;
     }
 
-    public function enableTwoFactorAuthentication(bool $condition = true, bool|Closure $force = false, string|Closure|array|null $action = TwoFactorPage::class)
+    public function enableTwoFactorAuthentication(bool $condition = true, bool|Closure $force = false, string|Closure|array|null $action = TwoFactorPage::class, string|false $authMiddleware = MustTwoFactor::class)
     {
         $this->twoFactorAuthentication = $condition;
         $this->forceTwoFactorAuthentication = $force;
         $this->twoFactorRouteAction = $action;
+        $this->twoFactorAuthenticationMiddleware = $authMiddleware;
 
         return $this;
     }
 
-    public function getForceTwoFactorAuthentication(): bool
+    public function getForceTwoFactorAuthentication(): ?bool
     {
         return $this->evaluate($this->forceTwoFactorAuthentication);
     }
@@ -343,7 +358,7 @@ class BreezyCore implements Plugin
         return $forceTwoFactor && ! $this->auth()->user()?->hasConfirmedTwoFactor();
     }
 
-    public function enableSanctumTokens(bool $condition = true, ?array $permissions = null)
+    public function enableSanctumTokens(bool $condition = true, null|array|Closure $permissions = null)
     {
         $this->sanctumTokens = $condition;
         if (! is_null($permissions)) {
@@ -355,7 +370,7 @@ class BreezyCore implements Plugin
 
     public function getSanctumPermissions(): array
     {
-        return collect($this->sanctumPermissions)->mapWithKeys(function ($item, $key) {
+        return collect($this->evaluate($this->sanctumPermissions))->mapWithKeys(function ($item, $key) {
             $key = is_string($key) ? $key : strtolower($item);
 
             return [$key => $item];
@@ -365,5 +380,12 @@ class BreezyCore implements Plugin
     protected function getMyProfilePageClass(): string
     {
         return $this->customMyProfilePageClass ?? Pages\MyProfilePage::class;
+    }
+
+    public function enableBrowserSessions(bool $condition = true)
+    {
+        $this->browserSessions = $condition;
+
+        return $this;
     }
 }

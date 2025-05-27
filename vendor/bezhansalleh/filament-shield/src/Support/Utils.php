@@ -5,6 +5,7 @@ namespace BezhanSalleh\FilamentShield\Support;
 use BezhanSalleh\FilamentShield\Contracts\HasShieldPermissions;
 use BezhanSalleh\FilamentShield\FilamentShield;
 use Filament\Facades\Filament;
+use Filament\Pages\SubNavigationPosition;
 use Filament\Panel;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -24,12 +25,17 @@ class Utils
                 ->values()
                 ->join(',')
         )
-            ->contains('RoleResource');
+            ->contains('\\RoleResource');
     }
 
     public static function getResourceSlug(): string
     {
         return (string) config('filament-shield.shield_resource.slug');
+    }
+
+    public static function getSubNavigationPosition(): ?SubNavigationPosition
+    {
+        return config('filament-shield.shield_resource.sub_navigation_position');
     }
 
     public static function isResourceNavigationRegistered(): bool

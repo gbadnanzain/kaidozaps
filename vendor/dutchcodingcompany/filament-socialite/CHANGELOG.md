@@ -2,6 +2,17 @@
 
 All notable changes to `filament-socialite` will be documented in this file.
 
+## [2.4.0 - 2025-02-25](https://github.com/DutchCodingCompany/filament-socialite/compare/2.3.1...2.4.0)
+
+## What's Changed
+* Laravel 12.x Compatibility by @laravel-shift in https://github.com/DutchCodingCompany/filament-socialite/pull/125
+
+## [2.3.1 - 2025-02-06](https://github.com/DutchCodingCompany/filament-socialite/compare/2.3.0...2.3.1)
+
+## What's Changed
+* Bump dependabot/fetch-metadata from 2.2.0 to 2.3.0 by @dependabot in https://github.com/DutchCodingCompany/filament-socialite/pull/123
+* Add data to events by @dododedodonl in https://github.com/DutchCodingCompany/filament-socialite/pull/124
+
 ## [2.3.0 - 2024-11-29](https://github.com/DutchCodingCompany/filament-socialite/compare/2.2.1...2.3.0)
 
 ## What's Changed

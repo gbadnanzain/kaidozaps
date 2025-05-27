@@ -1,6 +1,6 @@
 <x-filament-breezy::grid-section md=2 :title="__('filament-breezy::default.profile.sanctum.title')" :description="__('filament-breezy::default.profile.sanctum.description')">
         @if($plainTextToken)
-            <div class="space-y-2 bg-warning-500">
+            <div class="space-y-2 bg-warning-500 p-4 rounded">
                 <p class="text-sm">{{ __('filament-breezy::default.profile.sanctum.create.message') }}</p>
                 <input type="text" disabled @class(['w-full py-1 px-3 rounded-lg bg-gray-100 border-gray-200 dark:bg-gray-700 dark:border-gray-500']) name="plain_text_token" value="{{$plainTextToken}}" />
                 <div class="flex items-center justify-between">

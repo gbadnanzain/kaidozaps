@@ -637,6 +637,30 @@ class DateSettings extends Settings
 }
 ```
 
+### Default values
+
+As we've seen earlier, it is required to define migrations for each property of your setting classes otherwise a `MissingSettings` exception is thrown.
+
+Sometimes, certain setting classes are used in paths throughout your application which run before migrations, or sometimes it can take quite a while before the migrations are run. In these cases, it can be useful to define default values for your properties:
+
+```php
+class GeneralSettings extends Settings
+{
+    public string $site_name = 'Spatie';
+
+    public bool $site_active = true;
+    
+    public static function group(): string
+    {
+        return 'general';
+    }
+}
+```
+
+These default properties will then be used when no migrated value is found in the repository. This way, you can avoid the `MissingSettings` exception.
+
+In order to get no `MissingSettings` exception make sure to add default values to every property of your settings class, since property values are resolved in one go.
+
 ### Locking properties
 
 When you want to disable the ability to update the value of a setting, you can add a lock to it:

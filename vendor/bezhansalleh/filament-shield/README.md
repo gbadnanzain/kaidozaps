@@ -72,7 +72,7 @@ The easiest and most intuitive way to add access management to your Filament Pan
       - [Widgets](#widgets)
     - [Policies](#policies)
       - [Path](#path)
-      - [Custom folder structure for Models or Third-Party Plugins](#custom-folder-structure-for-models-or-third-party-plugins)
+      - [Policy Discovery](#policy-discovery)
         - [Using Laravel 10](#using-laravel-10)
         - [Using Laravel 11](#using-laravel-11)
       - [Users (Assigning Roles to Users)](#users-assigning-roles-to-users)
@@ -98,7 +98,19 @@ composer require bezhansalleh/filament-shield
 ```
 
 ### 2. Configure Auth Provider
-Add the `HasRoles` trait to your User model:
+#### 2.1. Publish the config and setup your auth provider model.
+```bash
+php artisan vendor:publish --tag="filament-shield-config"
+```
+```php
+//config/filament-shield.php
+...
+    'auth_provider_model' => [
+        'fqcn' => 'App\\Models\\User',
+    ],
+...
+```
+#### 2.2 Add the `HasRoles` trait to your auth provider model:
 ```php
 use Spatie\Permission\Traits\HasRoles;
 
@@ -343,11 +355,11 @@ class MyPage extends Page
     use HasPageShield;
     ...
 
-    protected function beforeBooted : void() {
+    protected function beforeBooted() : void {
         ...
     }
 
-    protected function afterBooted : void() {
+    protected function afterBooted() : void {
         ...
     }
 
@@ -355,7 +367,7 @@ class MyPage extends Page
      * Hook to perform an action before redirect if the user
      * doesn't have access to the page.  
      * */
-    protected function beforeShieldRedirects : void() {
+    protected function beforeShieldRedirects() : void {
         ...
     }
 }
@@ -416,9 +428,30 @@ If your policies are not in the default `Policies` directory in the `app_path()`
 ...
 ```
 
-#### Custom folder structure for Models or Third-Party Plugins
+#### Policy Discovery 
 
-Shield also generates policies and permissions for third-party plugins and `Models` with custom folder structure and to enforce the generated policies you will need to register them.
+Got a ton of policies inside subdirectories? Have to manually register them! right?
+
+Well, you can or you could instruct Laravel to automatically detect and register policies—even in subdirectories for you.
+
+Just add this to the `boot()` method:
+
+📌 Laravel 10 → `AuthServiceProvider`
+
+📌 Laravel 11+ → `xxServiceProvider`.
+
+```
+public function boot(): void
+{
+    Gate::guessPolicyNamesUsing(function (string $modelClass) {
+        return str_replace('Models', 'Policies', $modelClass) . 'Policy';
+    });
+}
+```
+
+#### Third-Party Plugins Policies
+
+Shield also generates policies and permissions for third-party plugins. To enforce the generated policies you will need to register them.
 ##### Using Laravel 10
 ```php
 //AuthServiceProvider.php
@@ -449,6 +482,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(\Ramnzys\FilamentEmailLog\Models\Email::class, \App\Policies\EmailPolicy::class);
     }
 ```
+
 #### Users (Assigning Roles to Users)
 Shield does not come with a way to assign roles to your users out of the box, however you can easily assign roles to your users using Filament `Forms`'s `Select` or `CheckboxList` component. Inside your users `Resource`'s form add one of these components and configure them as you need:
 1. **Without Tenancy**

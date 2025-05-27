@@ -2,6 +2,34 @@
 
 All notable changes to `laravel-query-builder` will be documented in this file
 
+## 6.3.1 - 2025-02-21
+
+### What's Changed
+
+* General code health improvements by @xHeaven in https://github.com/spatie/laravel-query-builder/pull/988
+* Bump dependabot/fetch-metadata from 2.2.0 to 2.3.0 by @dependabot in https://github.com/spatie/laravel-query-builder/pull/992
+* Laravel 12.x Compatibility by @laravel-shift in https://github.com/spatie/laravel-query-builder/pull/994
+* Exclude `.github` folder and `.php_cs` from being included in composer installation by @stevebauman in https://github.com/spatie/laravel-query-builder/pull/993
+
+### New Contributors
+
+* @xHeaven made their first contribution in https://github.com/spatie/laravel-query-builder/pull/988
+
+**Full Changelog**: https://github.com/spatie/laravel-query-builder/compare/6.3.0...6.3.1
+
+## 6.3.0 - 2024-12-23
+
+### What's Changed
+
+* Feature: Add "belongs to" filter by @gpibarra in https://github.com/spatie/laravel-query-builder/pull/975
+* Feature: Additional config options to better match the API spec by @CoolGoose in https://github.com/spatie/laravel-query-builder/pull/983
+
+### New Contributors
+
+* @CoolGoose made their first contribution in https://github.com/spatie/laravel-query-builder/pull/983
+
+**Full Changelog**: https://github.com/spatie/laravel-query-builder/compare/6.2.3...6.3.0
+
 ## 6.2.3 - 2024-12-23
 
 ### What's Changed

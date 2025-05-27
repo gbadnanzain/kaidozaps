@@ -17,24 +17,28 @@ use Filament\Tables\Filters\Filter;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Actions\ReplicateAction;
-use Filament\Tables\Columns\ColumnGroup;
 use Filament\Support\Enums\Alignment;
 use App\Filament\Exports\TransExporter;
 use Filament\Tables\Actions\BulkAction;
+use Filament\Tables\Columns\DateColumn;
 use Filament\Tables\Columns\IconColumn;
-//use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Filament\Tables\Columns\TextColumn;
+//use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Tables\Columns\ViewColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Columns\ColumnGroup;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Actions\CreateAction;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Enums\ActionsPosition;
 use Filament\Tables\Columns\TextInputColumn;
 use Filament\Tables\Actions\ExportBulkAction;
 use App\Filament\Resources\TransResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\TransResource\RelationManagers;
+
 
 class TransResource extends Resource
 {
@@ -62,6 +66,7 @@ class TransResource extends Resource
                         Forms\Components\TextInput::make('ID')
                             ->label('ID')
                             ->disabled()
+
                             ->unique(ignoreRecord: true)
                             ->columnSpan(6),
                         Forms\Components\TextInput::make('SO_No')
@@ -117,25 +122,29 @@ class TransResource extends Resource
                         Forms\Components\DatePicker::make('SO_Date')
                             ->label('SO Date')
                             ->required()
+                            ->date('d/m/Y')
 
                             ->placeholder('Select a date')
-                            ->displayFormat('d/m/Y')
-                            ->columnSpan(4)
-                            //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('d/m/Y'))
-                            ->default(Carbon::now()->format('d/m/Y')),
+
+                            ->displayFormat('d/m/Y') // Tampilan untuk user
+                            //->format('Y-m-d')        // Format disimpan ke DB
+                            ->native(false)
+                            ->columnSpan(6),
                         Forms\Components\TextInput::make('SO_DebtorID')
                             ->label('Debt. ID')
                             ->required()
-                            ->columnSpan(4),
+                            ->columnSpan(7),
 
                         Forms\Components\DatePicker::make('SO_Target_CompletionDatePerPO')
                             ->label('Target Compl./PO')
-                            ->required()
+                            //->required()
                             ->placeholder('Select a date')
-                            ->displayFormat('d/m/Y')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(8)
-                            //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('d/m/Y'))
-                            ->default(Carbon::now()->format('d/m/Y')),
+                        //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('d/m/Y'))
+                        //->default(Carbon::now()->format('d/m/Y'))
+                        ,
                         Forms\Components\TextInput::make('SO_DebtorName')
                             ->label('Debtor Name')
                             ->required()
@@ -173,9 +182,15 @@ class TransResource extends Resource
                             ->columnSpan(6),
                         DatePicker::make('PCH_ETA')
                             ->label('ETA')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(7),
                         DatePicker::make('PCH_PO_ReceiveDate')
                             ->label('PO Receive Date')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(7),
                         TextInput::make('PCH_Transfered_Qty')
                             ->label('Transf. Qty')
@@ -185,9 +200,15 @@ class TransResource extends Resource
                             ->columnSpan(6),
                         DatePicker::make('PCH_Date')
                             ->label('Purchase Date')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(7),
                         DatePicker::make('PCH_Inform_Finance_on')
-                            ->label('Inform Fin. on')
+                            ->label('Inform Fin. on Date')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(7),
                         TextInput::make('PCH_Remark')
                             ->label('Purchase Remark')
@@ -198,12 +219,18 @@ class TransResource extends Resource
                             ->columnSpan(6),
                         DatePicker::make('MTC_RQ_Date')
                             ->label('MTC Req. Date')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(7),
                         TextInput::make('MTC_Job_Done')
                             ->label('Job Done')
                             ->columnSpan(8),
                         DatePicker::make('MTC_Target_Completion')
-                            ->label('Target Compl. Date')
+                            ->label('MTC Target Compl. Date')
+                            ->placeholder('Select a date')
+                            ->displayFormat('d/m/Y') // Format yang ditampilkan ke user
+                            ->format('Y-m-d') // Format saat disimpan ke database
                             ->columnSpan(8),
                         TextInput::make('MTC_SBK')
                             ->label('SBK')
@@ -259,9 +286,9 @@ class TransResource extends Resource
                             ->disabled()
                             ->columnSpan(6)
 
-                            ->default(Auth::user()->name),
+                            //    ->default(Auth::user()->name),
 
-                        //->default(Auth::check() ? Auth::user()->name : 'Guest')
+                            ->default(Auth::check() ? Auth::user()->name : 'Guest'),
 
                         TextInput::make('updated_at')
                             ->label('Updated at')
@@ -279,14 +306,19 @@ class TransResource extends Resource
                 // #GROUP COLUMN
                 ColumnGroup::make('## SALES ORDER GROUP ##', [
                     TextColumn::make('ID')
-                        /* ->copyable()
+                        ->copyable()
                         ->copyMessage('SO ID copied')
-                        ->copyMessageDuration(1500) */
+                        ->copyMessageDuration(1500)
                         ->sortable()
                         //->searchable()
                         ->toggleable()
                         ->disabled()
                         ->label('ID'),
+
+
+
+                   
+
                     TextInputColumn::make('SO_ID')
 
                         ->label('SO ID')
@@ -305,17 +337,13 @@ class TransResource extends Resource
                         ->default('')
                         ->toggleable(),
 
-                    TextInputColumn::make('SO_Date')
 
-
-                        ->sortable()
-                        //->searchable(isIndividual: true)
-
+                    TextColumn::make('SO_Date')
                         ->label('Sales Order Date')
-                        ->tooltip('format date YY/MM/DD')
-
-                        ->placeholder('Enter SO Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Date)->format('Y/m/d')),
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                    //->placeholder('Enter SO Date')
+                    ,
 
                     TextColumn::make('SO_Status')
                         ->badge()
@@ -405,20 +433,18 @@ class TransResource extends Resource
 
                         }),
 
-                    TextInputColumn::make('SO_Target_CompletionDatePerPO')
+                    TextColumn::make('SO_Target_CompletionDatePerPO')
+                        ->label('SO Target Compl. Date / PO')
                         ->sortable()
                         ->toggleable(isToggledHiddenByDefault: false)
-                        ->tooltip('format date YYYY/MM/DD')
-                        //->searchable(isIndividual: true)
-                        ->label('SO Target Completion Date Per PO')
-                        ->placeholder('Enter SO Target Completion Date Per PO')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->SO_Target_CompletionDatePerPO)->format('Y/m/d'))
-                        ->default(Carbon::now()->format('d/m/Y')),
+                        //->placeholder('Enter SO Target Compl. Date/PO')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable(),
                     TextInputColumn::make('SO_DebtorID')
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Debtor ID')
-                        ->placeholder('Enter Debtor ID')
+                        //->placeholder('Enter Debtor ID')
                         ->default('-'),
 
 
@@ -428,7 +454,7 @@ class TransResource extends Resource
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Debtor Name')
-                        ->placeholder('Enter Debtor Name')
+                        //->placeholder('Enter Debtor Name')
                         ->default('-'),
 
                     TextInputColumn::make('SO_Agent')
@@ -436,14 +462,14 @@ class TransResource extends Resource
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Agent ')
-                        ->placeholder('Enter Agent')
+                        //->placeholder('Enter Agent')
                         ->default('-'),
 
                     TextInputColumn::make('SO_CustPONo')
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Customer PO No')
-                        ->placeholder('Enter Customer PO No')
+                        //->placeholder('Enter Customer PO No')
                         ->default('-'),
 
 
@@ -452,7 +478,7 @@ class TransResource extends Resource
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Item Description')
-                        ->placeholder('Enter Item Description')
+                        //->placeholder('Enter Item Description')
                         ->default('-')
                         ->extraAttributes([
                             'style' => 'width: fit-content; white-space: nowrap;',
@@ -462,28 +488,28 @@ class TransResource extends Resource
                         ->sortable()
                         ->searchable(isIndividual: true)
                         ->label('Lift No')
-                        ->placeholder('Enter Lift No')
+                        //->placeholder('Enter Lift No')
                         ->default('-'),
 
                     TextInputColumn::make('SO_Qty')
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('Quantity')
-                        ->placeholder('Enter Quantity')
+                        //->placeholder('Enter Quantity')
                         ->default(''),
 
                     TextInputColumn::make('SO_UOM')
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('UOM')
-                        ->placeholder('Enter UOM')
+                        //->placeholder('Enter UOM')
                         ->default('-'),
 
                     TextInputColumn::make('SO_OIR_SentTo_Finance')
                         ->sortable()
                         //->searchable(isIndividual: true)
                         ->label('OIR Sent to Finance')
-                        ->placeholder('Enter OIR Sent to Finance')
+                        //->placeholder('Enter OIR Sent to Finance')
                         ->default(''),
 
                     TextInputColumn::make('SO_RQ_No')
@@ -504,10 +530,15 @@ class TransResource extends Resource
                         ->label('ETA')
                         ->sortable(),
                     //->searchable(isIndividual: true),
-                    TextInputColumn::make('PCH_PO_ReceiveDate')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('Y/m/d'))
+                    TextColumn::make('PCH_PO_ReceiveDate')
+                        //->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_ETA)->format('Y/m/d'))
                         ->label('PO Receive Date')
-                        ->tooltip('format date YYYY/MM/DD')
+
+                        ->tooltip('format date dd/mm/yyyy')
+
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                        //->placeholder('Enter SO Date')
                         ->columnSpan(1),
                     TextInputColumn::make('PCH_Transfered_Qty')
                         ->label('Transf. Qty')
@@ -516,11 +547,14 @@ class TransResource extends Resource
                         ->searchable(isIndividual: true)
                         ->label('Purchase Document')
                         ->columnSpan(1),
-                    TextInputColumn::make('PCH_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->PCH_Date)->format('Y/m/d'))
+                    TextColumn::make('PCH_Date')
+
                         ->label('Purchase Date')
-                        ->tooltip('format date YYYY/MM/DD')
-                        ->columnSpan(1),
+                        ->tooltip('format date dd/mm/yyyy')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                        //->placeholder('Enter SO Date')
+                        ->columnSpan(3),
                     /* TextInputColumn::make('PCH_Inform_Finance_on')
                     ->label('Inform Finance on')
                     ->columnSpan(1), */
@@ -541,21 +575,26 @@ class TransResource extends Resource
                         ->sortable()
                         ->searchable(isIndividual: true)
                         ->toggleable(),
-                    TextInputColumn::make('MTC_RQ_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_RQ_Date)->format('Y/m/d'))
+                    TextColumn::make('MTC_RQ_Date')
+
                         ->label('MTC Req. Date')
-                        ->tooltip('format date YYYY/MM/DD')
+                        ->tooltip('format date dd/mm/yyyy')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+
                         ->toggleable(),
                     TextInputColumn::make('MTC_Job_Done')
                         ->label('Job Done')
                         ->sortable()
                         //->searchable()
                         ->toggleable(),
-                    TextInputColumn::make('MTC_Target_Completion')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->MTC_Target_Completion)->format('Y/m/d'))
+                    TextColumn::make('MTC_Target_Completion')
+
                         ->label('MTC Target Compl. Date')
-                        ->tooltip('format date YYYY/MM/DD')
+                        ->tooltip('format date dd/mm/yyyy')
+                        ->date('d/m/Y') // Format tanggal
                         ->sortable()
+                        //->placeholder('Enter SO Date')->sortable()
                         ->toggleable(),
                     /* TextInputColumn::make('MTC_SBK')
                     ->searchable(isIndividual: true)
@@ -606,19 +645,29 @@ class TransResource extends Resource
                     TextInputColumn::make('ACTG_Invoicing')
                         ->label('Invoicing')
                         ->toggleable(),
-                    TextInputColumn::make('ACTG_Inv_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Inv_Date)->format('Y/m/d'))
-                        ->label('Invoice Date')
-                        ->tooltip('format date YYYY/MM/DD')
-                        ->toggleable(isToggledHiddenByDefault: true),
-                    TextInputColumn::make('ACTG_Payment_Receipt')
+                    TextColumn::make('ACTG_Inv_Date')
 
+                        ->label('Invoice Date')
+                        ->tooltip('format date dd/mm/yyyy')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                        //->placeholder('Invoice Date')
+
+                        ->toggleable(isToggledHiddenByDefault: true),
+                    TextColumn::make('ACTG_Payment_Receipt')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                        //->placeholder('Enter Payment Receipt Date')
                         ->label('Payment Receipt Date')
                         ->toggleable(isToggledHiddenByDefault: true),
-                    TextInputColumn::make('ACTG_Payment_Rcpt_Date')
-                        ->getStateUsing(fn($record) => \Carbon\Carbon::parse($record->ACTG_Payment_Rcpt_Date)->format('Y/m/d'))
+                    TextColumn::make('ACTG_Payment_Rcpt_Date')
                         ->label('Payment Receipt Date')
                         ->tooltip('format date YYYY/MM/DD')
+                        ->date('d/m/Y') // Format tanggal
+                        ->sortable()
+                        //->placeholder('Enter Payment Receipt Date')
+
+                        //->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('d/m/Y')) // Ubah format tampilan
                         ->toggleable(isToggledHiddenByDefault: true),
                     TextInputColumn::make('ACTG_Remarks')
                         ->label('Accounting Remarks')
@@ -637,11 +686,11 @@ class TransResource extends Resource
                         ->sortable()
                         ->disabled()->columnSpan(6),
                 ])
-                    ->alignment(Alignment:: Left)
+                    ->alignment(Alignment::Left)
                     ->wrapHeader(),
             ])
 
-            ->striped()
+            ->striped(true)
             ->recordClasses(fn($record) => 'hover:bg-yellow-100 focus:bg-yellow-200')
             ->defaultSort('ID', 'desc')
             ->filters([
@@ -795,81 +844,86 @@ class TransResource extends Resource
             ->actions([
 
 
-                Tables\Actions\ActionGroup::make(
-                    [
+                //Tables\Actions\ActionGroup::make(
+                //    [
 
-                        // ->requiresConfirmation()
-                        //->requiresConfirmation()
-                        //->modalHeading('Create New Record')
-                        //->modalSubheading('Are you sure you want to create new record?'),
-
-
+                // ->requiresConfirmation()
+                //->requiresConfirmation()
+                //->modalHeading('Create New Record')
+                //->modalSubheading('Are you sure you want to create new record?'),
 
 
 
 
-                        Action::make('replicate')
-                            ->label('Duplicate this ...')
-                            ->color('danger')
-                            ->icon('heroicon-o-document-duplicate')
-                            ->action(function ($record) {
-                                $newReplicaRecord = $record->replicate();
-
-                                // List of attributes to exclude
-                                $excludeAttributes = [
-                                    'SO_Item_Description',
-                                    'SO_LiftNo',
-                                    'SO_Qty',
-                                    'SO_UOM',
-                                    'SO_OIR_SentTo_Finance',
-                                    'SO_RQ_No',
-                                    'SO_Remark',
-                                    'PCH_PO_to_TELC_MS',
-                                    'PCH_ETA',
-                                    'PCH_PO_ReceiveDate',
-                                    'PCH_Transfered_Qty',
-                                    'PCH_Doc',
-                                    'PCH_Date',
-                                    'PCH_Inform Finance on',
-                                    'PCH_Remark',
-                                    'MTC_RQ_No',
-                                    'MTC_RQ_Date',
-                                    'MTC_Job_Done',
-                                    'MTC_Target_Completion',
-                                    'MTC_SBK',
-                                    'MTC_JO',
-                                    'MTC_DN_DO',
-                                    'MTC_BA',
-                                    'MTC_Other',
-                                    'MTC_Remarks',
-                                    'ACTG_Unit_Price',
-                                    'ACTG_Currency',
-                                    'ACTG_Currency_Rate',
-                                    'ACTG_Local_Net_Total',
-                                    'ACTG_Invoicing',
-                                    'ACTG_Inv_Date',
-                                    'ACTG_Remarks',
-                                    'ACTG_Payment_Receipt',
-                                    'ACTG_Payment_Rcpt_Date'
-                                ];
-
-                                // Loop through attributes to exclude and unset them from the new record
-                                foreach ($excludeAttributes as $attribute) {
-                                    unset($newReplicaRecord->$attribute);
-                                }
-                                $newReplicaRecord->SO_ID = $record->SO_ID;
-                                $newReplicaRecord->SO_Status =   $record->SO_Status;
-                                $newReplicaRecord->updated_by = Auth::user()->name;
-                                $newReplicaRecord->updated_at = now();
-
-                                // Simpan record yang baru
-                                $newReplicaRecord->save();
-                                // $this->notify('success', 'Record successfully replicated/duplicated.');
-                            })
 
 
-                    ]
-                ),
+                Action::make('replicate')
+                   
+                    ->color('danger')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->tooltip("Duplicate This")
+                    ->action(function ($record) {
+                        $newReplicaRecord = $record->replicate();
+
+                        // List of attributes to exclude
+                        $excludeAttributes = [
+                            'SO_Item_Description',
+                            'SO_LiftNo',
+                            'SO_Qty',
+                            'SO_UOM',
+                            'SO_OIR_SentTo_Finance',
+                            'SO_RQ_No',
+                            'SO_Remark',
+                            'PCH_PO_to_TELC_MS',
+                            'PCH_ETA',
+                            'PCH_PO_ReceiveDate',
+                            'PCH_Transfered_Qty',
+                            'PCH_Doc',
+                            'PCH_Date',
+                            'PCH_Inform Finance on',
+                            'PCH_Remark',
+                            'MTC_RQ_No',
+                            'MTC_RQ_Date',
+                            'MTC_Job_Done',
+                            'MTC_Target_Completion',
+                            'MTC_SBK',
+                            'MTC_JO',
+                            'MTC_DN_DO',
+                            'MTC_BA',
+                            'MTC_Other',
+                            'MTC_Remarks',
+                            'ACTG_Unit_Price',
+                            'ACTG_Currency',
+                            'ACTG_Currency_Rate',
+                            'ACTG_Local_Net_Total',
+                            'ACTG_Invoicing',
+                            'ACTG_Inv_Date',
+                            'ACTG_Remarks',
+                            'ACTG_Payment_Receipt',
+                            'ACTG_Payment_Rcpt_Date'
+                        ];
+
+                        // Loop through attributes to exclude and unset them from the new record
+                        foreach ($excludeAttributes as $attribute) {
+                            unset($newReplicaRecord->$attribute);
+                        }
+                        $newReplicaRecord->SO_ID = $record->SO_ID;
+                        $newReplicaRecord->SO_Status =   $record->SO_Status;
+                        $newReplicaRecord->updated_by = Auth::user()->name;
+
+                        $newReplicaRecord->updated_at = now();
+
+                        // Simpan record yang baru
+                        $newReplicaRecord->save();
+                        // $this->notify('success', 'Record successfully replicated/duplicated.');
+                    })
+
+                   
+                    
+
+
+                //]
+                //),
 
                 /* CreateAction::make()
                     ->label('New Record [Form]')
@@ -885,7 +939,12 @@ class TransResource extends Resource
 
 
 
-            ])
+            ]
+            
+            )
+            ->actionsPosition(ActionsPosition::BeforeColumns)
+            
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     //  Tables\Actions\DeleteBulkAction::make(),
@@ -1079,6 +1138,7 @@ class TransResource extends Resource
             ])
             //->deselectRecordsAfterCompletion()
         ;
+        
     }
 
     public static function getRelations(): array

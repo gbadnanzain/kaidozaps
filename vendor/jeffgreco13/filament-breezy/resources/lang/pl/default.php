@@ -4,7 +4,7 @@ return [
     'login' => [
         'username_or_email' => 'Nazwa użytkownik lub email',
         'forgot_password_link' => 'Nie pamiętasz hasła?',
-        'create_an_account' => 'załóż konto',
+        'create_an_account' => 'Załóż konto',
     ],
     'password_confirm' => [
         'heading' => 'Potwierdź hasło',
@@ -58,8 +58,9 @@ return [
         'account' => 'Konto',
         'profile' => 'Profil',
         'my_profile' => 'Mój profil',
+        'subheading' => 'Zarządzaj swoim profilem.',
         'personal_info' => [
-            'heading' => 'Twoje dane osobowe.',
+            'heading' => 'Twoje dane osobowe',
             'subheading' => 'Edytuj swoje dane osobowe.',
             'submit' => [
                 'label' => 'Zapisz',
@@ -67,7 +68,7 @@ return [
             'notify' => 'Dane osobowe zaktualizowane pomyślnie!',
         ],
         'password' => [
-            'heading' => 'Twoje hasło.',
+            'heading' => 'Twoje hasło',
             'subheading' => 'Hasło powinno składać się przynajmniej 8 znaków.',
             'submit' => [
                 'label' => 'Zapisz',
@@ -76,7 +77,7 @@ return [
         ],
         '2fa' => [
             'title' => 'Weryfikacja dwuetapowa',
-            'description' => 'Zarządzaj weryfikacją dwuetapową swojego konta. (rekomendowane)',
+            'description' => 'Zarządzaj weryfikacją dwuetapową swojego konta (zalecane).',
             'actions' => [
                 'enable' => 'Włącz',
                 'regenerate_codes' => 'Wygeneruj nowe kody',
@@ -100,6 +101,12 @@ return [
                 'show_codes' => 'Pokaż kody odzyskiwania',
                 'hide_codes' => 'Ukryj kody odzyskiwania',
             ],
+            'disabling' => [
+                'notify' => 'Weryfikacja dwuetapowa została wyłączona.',
+            ],
+            'regenerate_codes' => [
+                'notify' => 'Nowe kody odzyskiwania zostały wygenerowane.',
+            ],
             'confirmation' => [
                 'success_notification' => 'Kod zweryfikowany pomyślnie! Weryfikacja dwuetapowa została włączona.',
                 'invalid_code' => 'Wprowadzony kod jest nieprawidłowy.',
@@ -107,15 +114,22 @@ return [
         ],
         'sanctum' => [
             'title' => 'Tokeny API',
-            'description' => 'Zarządzaj tokenami API, które pozwalają aplikacjom na dostęp do Twojego konta innym aplikacjom. (Jeżeli stracisz swój token, musisz najpierw go usunąć aby wygenerować nowy.)',
+            'description' => 'Zarządzaj tokenami API, które pozwalają aplikacjom zewnętrznym uzyskać dostęp do Twoich danych.',
             'create' => [
                 'notify' => 'Token stworzony pomyślnie!',
+                'message' => 'Token jest widoczny tylko raz podczas tworzenia. Jeśli zgubisz token, będziesz musiał go usunąć i utworzyć nowy.',
                 'submit' => [
                     'label' => 'Stwórz token',
                 ],
             ],
             'update' => [
                 'notify' => 'Token zaktualizowany pomyślnie!',
+                'submit' => [
+                    'label' => 'Aktualizuj token',
+                ],
+            ],
+            'copied' => [
+                'label' => 'Token został skopiowany',
             ],
         ],
     ],
@@ -124,6 +138,7 @@ return [
         'tooltip' => 'Skopiowano!',
     ],
     'fields' => [
+        'avatar' => 'Awatar',
         'email' => 'Email',
         'login' => 'Login',
         'name' => 'Nazwa użytkownika',
@@ -132,7 +147,8 @@ return [
         'new_password' => 'Nowe hasło',
         'new_password_confirmation' => 'Potwierdź nowe hasło',
         'token_name' => 'Nazwa tokenu',
-        'abilities' => 'Możliwości',
+        'token_expiry' => 'Ważność tokenu',
+        'abilities' => 'Uprawnienia',
         '2fa_code' => 'Kod weryfikacji dwuetapowej',
         '2fa_recovery_code' => 'Kod odzyskiwania weryfikacji dwuetapowej',
         'created' => 'Utworzono',

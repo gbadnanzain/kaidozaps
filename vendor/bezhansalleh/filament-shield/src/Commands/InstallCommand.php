@@ -7,6 +7,7 @@ namespace BezhanSalleh\FilamentShield\Commands;
 use Filament\Facades\Filament;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Console\PromptsForMissingInput;
+use Illuminate\Support\Facades\Process;
 use Symfony\Component\Console\Attribute\AsCommand;
 
 #[AsCommand(name: 'shield:install')]
@@ -86,10 +87,7 @@ class InstallCommand extends Command implements PromptsForMissingInput
             $this->generateRelationships($panel);
         }
 
-        $this->call('shield:generate', [
-            '--resource' => 'RoleResource',
-            '--panel' => $panel->getId(),
-        ]);
+        Process::run("php artisan shield:generate --resource=RoleResource --panel={$panel->getId()}");
 
         $this->components->info('Shield has been successfully configured & installed!');
 

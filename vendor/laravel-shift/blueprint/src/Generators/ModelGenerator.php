@@ -215,7 +215,7 @@ class ModelGenerator extends AbstractClassGenerator implements Generator
 
         $columns = $this->castableColumns($model->columns());
         if (!empty($columns)) {
-            $properties[] = str_replace('[]', $this->pretty_print_array($columns), $this->filesystem->stub('model.casts.stub'));
+            $properties[] = str_replace('[]', $this->pretty_print_array($columns, indent: 8), $this->filesystem->stub('model.casts.stub'));
         }
 
         return trim(implode(PHP_EOL, array_filter($properties, fn ($property) => !empty(trim($property)))));
@@ -237,11 +237,11 @@ class ModelGenerator extends AbstractClassGenerator implements Generator
         );
     }
 
-    private function pretty_print_array(array $data, bool $assoc = true): string
+    private function pretty_print_array(array $data, bool $assoc = true, int $indent = 4): string
     {
         $output = var_export($data, true);
-        $output = preg_replace('/^\s+/m', '        ', $output);
-        $output = preg_replace(['/^array\s\(/', '/\)$/'], ['[', '    ]'], $output);
+        $output = preg_replace('/^\s+/m', str_repeat(' ', $indent + 4), $output);
+        $output = preg_replace(['/^array\s\(/', '/\)$/'], ['[', str_repeat(' ', $indent) . ']'], $output);
 
         if (!$assoc) {
             $output = preg_replace('/^(\s+)[^=]+=>\s+/m', '$1', $output);
@@ -383,7 +383,7 @@ class ModelGenerator extends AbstractClassGenerator implements Generator
                             $relationship .= sprintf('%s->withTimestamps()', PHP_EOL . str_pad(' ', 12));
                         }
                     } else {
-                        $relationship = sprintf('$this->%s(%s::class, \'%s\')', $type, $fqcn, $column_name);
+                        $relationship = sprintf('$this->%s(%s::class)', $type, $fqcn);
                     }
                     $column_name = $class;
                 } else {
@@ -393,7 +393,7 @@ class ModelGenerator extends AbstractClassGenerator implements Generator
                 if ($type === 'morphTo') {
                     $method_name = Str::lower($class_name);
                 } elseif (in_array($type, ['hasMany', 'belongsToMany', 'morphMany', 'morphToMany', 'morphedByMany'])) {
-                    $method_name = Str::plural($is_model_fqn ? Str::afterLast($column_name, '\\') : $column_name);
+                    $method_name = Str::plural($is_pivot ? $column_name : $method_name);
                 }
 
                 $relationship_type = 'Illuminate\\Database\\Eloquent\\Relations\\' . Str::studly($type === 'morphedByMany' ? 'morphToMany' : $type);

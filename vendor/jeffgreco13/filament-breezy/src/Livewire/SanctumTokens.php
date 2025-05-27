@@ -110,6 +110,7 @@ class SanctumTokens extends MyProfileComponent implements Tables\Contracts\HasTa
     {
         return [
             Tables\Actions\EditAction::make('edit')
+                ->label(__('filament-breezy::default.profile.sanctum.update.submit.label'))
                 ->iconButton()
                 ->modalWidth($this->modalWidth)
                 ->form($this->getSanctumFormSchema(edit: true)),
